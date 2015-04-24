@@ -1,0 +1,33 @@
+<div class="form-container" [control-group]="form">
+  <form class="contact" method="POST" action="/contact">
+    <div class="form-group">
+      <label for="fullName">*Full Name</label>
+      <input control="fullName" type="text" class="form-control" name="fullName" placeholder="Full Name">
+    </div>
+    <div class="form-group">
+      <label for="emailAddress">*Email Address</label>
+      <input control="emailAddress" type="text" class="form-control" name="emailAddress"  id="emailAddress" placeholder="Email Address">
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea control="description" name="description" placeholder="Description" class="form-control" rows="3"></textarea>
+    </div>
+    <button id="submit-contact" type="submit" class="btn btn-primary" (click)="submitContact($event)">Create</button>
+  </form>
+  <div class="bg-info"><p>&nbsp;info: {{message}}</p></div>
+  <div class="display">
+    <table class="table">
+      <tbody>
+        <tr>
+          <th>*Full Name</th><td>{{form.controls.fullName.value}}</td>
+        </tr>
+        <tr>
+          <th>*Email Address</th><td>{{form.controls.emailAddress.value}}</td>
+        </tr>
+        <tr>
+          <th>Description</th><td>{{form.controls.description.value}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
