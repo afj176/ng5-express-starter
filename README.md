@@ -39,4 +39,4 @@ http://localhost:3000/
 ### Screenshot
 =================
 
-![screenshot](https://raw.githubusercontent.com/afj176/ng-express-starter/master/screenshot.png "Screenshot")
+![screenshot](https://raw.githubusercontent.com/afj176/ng2-express-starter/master/screenshot.png "Screenshot")
