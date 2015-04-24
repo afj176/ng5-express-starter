@@ -15,16 +15,22 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/dom/dom_adapter", "ang
     for (var i = 0; i < contents.length; ++i) {
       var content = contents[i];
       var select = content.select;
-      var matchSelector = (function(n) {
-        return DOM.elementMatches(n, select);
-      });
       if (select.length === 0) {
-        content.insert(nodes);
+        content.insert(ListWrapper.clone(nodes));
         ListWrapper.clear(nodes);
       } else {
+        var matchSelector = (function(n) {
+          return DOM.elementMatches(n, select);
+        });
         var matchingNodes = ListWrapper.filter(nodes, matchSelector);
         content.insert(matchingNodes);
         ListWrapper.removeAll(nodes, matchingNodes);
+      }
+    }
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (isPresent(node.parentNode)) {
+        DOM.remove(nodes[i]);
       }
     }
   }
@@ -68,10 +74,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/dom/dom_adapter", "ang
         };
         return ($traceurRuntime.createClass)(LightDom, {
           redistribute: function() {
-            var tags = this.contentTags();
-            if (tags.length > 0) {
-              redistributeNodes(tags, this.expandedDomNodes());
-            }
+            redistributeNodes(this.contentTags(), this.expandedDomNodes());
           },
           contentTags: function() {
             return assert.returnType((this._collectAllContentTags(this.shadowDomView, [])), assert.genericType(List, Content));

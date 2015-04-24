@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular2/src/facade/collection", "./abstract_change_detector", "./binding_record", "./directive_record", "./pipes/pipe_registry", "./change_detection_util", "./proto_record", "./exceptions"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular2/src/facade/collection", "./abstract_change_detector", "./binding_record", "./pipes/pipe_registry", "./change_detection_util", "./proto_record", "./exceptions"], function($__export) {
   "use strict";
   var assert,
       isPresent,
@@ -11,7 +11,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       StringMapWrapper,
       AbstractChangeDetector,
       BindingRecord,
-      DirectiveRecord,
       PipeRegistry,
       ChangeDetectionUtil,
       uninitialized,
@@ -56,8 +55,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       AbstractChangeDetector = $__m.AbstractChangeDetector;
     }, function($__m) {
       BindingRecord = $__m.BindingRecord;
-    }, function($__m) {
-      DirectiveRecord = $__m.DirectiveRecord;
     }, function($__m) {
       PipeRegistry = $__m.PipeRegistry;
     }, function($__m) {
@@ -146,11 +143,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               }
               if (proto.lastInDirective) {
                 if (isPresent(changes)) {
-                  this._getDirectiveFor(directiveRecord).onChange(changes);
+                  this._getDirectiveFor(directiveRecord.directiveIndex).onChange(changes);
                   changes = null;
                 }
                 if (isChanged && bindingRecord.isOnPushChangeDetection()) {
-                  this._getDetectorFor(directiveRecord).markAsCheckOnce();
+                  this._getDetectorFor(directiveRecord.directiveIndex).markAsCheckOnce();
                 }
                 isChanged = false;
               }
@@ -161,7 +158,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             for (var i = dirs.length - 1; i >= 0; --i) {
               var dir = dirs[i];
               if (dir.callOnAllChangesDone) {
-                this._getDirectiveFor(dir).onAllChangesDone();
+                this._getDirectiveFor(dir.directiveIndex).onAllChangesDone();
               }
             }
           },
@@ -169,7 +166,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             if (isBlank(bindingRecord.directiveRecord)) {
               this.dispatcher.notifyOnBinding(bindingRecord, change.currentValue);
             } else {
-              bindingRecord.setter(this._getDirectiveFor(bindingRecord.directiveRecord), change.currentValue);
+              var directiveIndex = bindingRecord.directiveRecord.directiveIndex;
+              bindingRecord.setter(this._getDirectiveFor(directiveIndex), change.currentValue);
             }
           },
           _addChange: function(bindingRecord, change, changes) {
@@ -180,13 +178,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               return changes;
             }
           },
-          _getDirectiveFor: function(directive) {
-            assert.argumentTypes(directive, DirectiveRecord);
-            return this.directives.getDirectiveFor(directive);
+          _getDirectiveFor: function(directiveIndex) {
+            return this.directives.getDirectiveFor(directiveIndex);
           },
-          _getDetectorFor: function(directive) {
-            assert.argumentTypes(directive, DirectiveRecord);
-            return this.directives.getDetectorFor(directive);
+          _getDetectorFor: function(directiveIndex) {
+            return this.directives.getDetectorFor(directiveIndex);
           },
           _check: function(proto) {
             assert.argumentTypes(proto, ProtoRecord);
@@ -284,6 +280,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           },
           _readContext: function(proto) {
             assert.argumentTypes(proto, ProtoRecord);
+            if (proto.contextIndex == -1) {
+              return this._getDirectiveFor(proto.directiveIndex);
+            } else {
+              return this.values[proto.contextIndex];
+            }
             return this.values[proto.contextIndex];
           },
           _readSelf: function(proto) {
@@ -342,12 +343,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         }});
       Object.defineProperty(DynamicChangeDetector.prototype._addChange, "parameters", {get: function() {
           return [[BindingRecord], [], []];
-        }});
-      Object.defineProperty(DynamicChangeDetector.prototype._getDirectiveFor, "parameters", {get: function() {
-          return [[DirectiveRecord]];
-        }});
-      Object.defineProperty(DynamicChangeDetector.prototype._getDetectorFor, "parameters", {get: function() {
-          return [[DirectiveRecord]];
         }});
       Object.defineProperty(DynamicChangeDetector.prototype._check, "parameters", {get: function() {
           return [[ProtoRecord]];

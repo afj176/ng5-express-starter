@@ -1,6 +1,7 @@
-System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/facade/async", "angular2/src/core/compiler/directive_metadata_reader", "angular2/src/core/compiler/dynamic_component_loader", "angular2/src/core/annotations/annotations", "angular2/src/core/compiler/element_injector", "angular2/src/core/compiler/compiler", "angular2/src/core/compiler/view", "angular2/src/core/compiler/view_factory", "angular2/src/core/compiler/view_hydrator"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/test_lib/test_bed", "angular2/src/core/annotations/annotations", "angular2/src/core/annotations/view", "angular2/src/core/compiler/dynamic_component_loader", "angular2/src/core/compiler/element_injector", "angular2/src/directives/if", "angular2/src/render/dom/direct_dom_renderer"], function($__export) {
   "use strict";
-  var AsyncTestCompleter,
+  var assert,
+      AsyncTestCompleter,
       beforeEach,
       ddescribe,
       xdescribe,
@@ -13,104 +14,144 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
       beforeEachBindings,
       it,
       xit,
-      SpyObject,
-      proxy,
-      IMPLEMENTS,
-      MapWrapper,
-      ListWrapper,
-      Promise,
-      PromiseWrapper,
-      DirectiveMetadataReader,
-      DynamicComponentLoader,
+      TestBed,
       Decorator,
-      Viewport,
       Component,
+      Viewport,
+      DynamicComponent,
+      View,
+      DynamicComponentLoader,
       ElementRef,
-      ElementInjector,
-      ProtoElementInjector,
-      PreBuiltObjects,
-      Compiler,
-      AppProtoView,
-      AppView,
-      ViewFactory,
-      AppViewHydrator,
-      SomeDecorator,
-      SomeViewport,
-      SomeComponent,
-      SpyCompiler,
-      SpyViewFactory,
-      SpyAppViewHydrator,
-      SpyAppView;
+      If,
+      DirectDomRenderer,
+      ImperativeViewComponentUsingNgComponent,
+      ChildComp,
+      DynamicallyCreatedComponentService,
+      DynamicComp,
+      DynamicallyCreatedCmp,
+      DynamicallyLoaded,
+      DynamicallyLoaded2,
+      Location,
+      MyComp;
   function main() {
-    describe("DynamicComponentLoader", (function() {
-      var compiler;
-      var viewFactory;
-      var directiveMetadataReader;
-      var viewHydrator;
-      var loader;
-      beforeEach((function() {
-        compiler = new SpyCompiler();
-        viewFactory = new SpyViewFactory();
-        viewHydrator = new SpyAppViewHydrator();
-        directiveMetadataReader = new DirectiveMetadataReader();
-        loader = new DynamicComponentLoader(compiler, directiveMetadataReader, viewFactory, viewHydrator);
-      }));
-      function createProtoView() {
-        return new AppProtoView(null, null);
-      }
-      function createEmptyView() {
-        var view = new AppView(null, null, null, createProtoView(), MapWrapper.create());
-        view.init(null, [], [], [], []);
-        return view;
-      }
-      function createElementRef(view, boundElementIndex) {
-        var peli = new ProtoElementInjector(null, boundElementIndex, []);
-        var eli = new ElementInjector(peli, null);
-        var preBuiltObjects = new PreBuiltObjects(view, null, null);
-        eli.instantiateDirectives(null, null, null, preBuiltObjects);
-        return new ElementRef(eli);
-      }
-      describe("loadIntoExistingLocation", (function() {
-        describe('Load errors', (function() {
-          it('should throw when trying to load a decorator', (function() {
-            expect((function() {
-              return loader.loadIntoExistingLocation(SomeDecorator, null);
-            })).toThrowError("Could not load 'SomeDecorator' because it is not a component.");
+    describe('DynamicComponentLoader', function() {
+      describe("loading into existing location", (function() {
+        it('should work', inject([TestBed, AsyncTestCompleter], (function(tb, async) {
+          tb.overrideView(MyComp, new View({
+            template: '<dynamic-comp #dynamic></dynamic-comp>',
+            directives: [DynamicComp]
           }));
-          it('should throw when trying to load a viewport', (function() {
-            expect((function() {
-              return loader.loadIntoExistingLocation(SomeViewport, null);
-            })).toThrowError("Could not load 'SomeViewport' because it is not a component.");
+          tb.createView(MyComp).then((function(view) {
+            var dynamicComponent = view.rawView.locals.get("dynamic");
+            expect(dynamicComponent).toBeAnInstanceOf(DynamicComp);
+            dynamicComponent.done.then((function(_) {
+              view.detectChanges();
+              expect(view.rootNodes).toHaveText('hello');
+              async.done();
+            }));
           }));
-        }));
-        it('should compile, create and hydrate the view', inject([AsyncTestCompleter], (function(async) {
-          var log = [];
-          var protoView = createProtoView();
-          var hostView = createEmptyView();
-          var childView = createEmptyView();
-          viewHydrator.spy('hydrateDynamicComponentView').andCallFake((function(hostView, boundElementIndex, componentView, componentDirective, injector) {
-            ListWrapper.push(log, ['hydrateDynamicComponentView', hostView, boundElementIndex, componentView]);
+        })));
+        it('should inject dependencies of the dynamically-loaded component', inject([TestBed, AsyncTestCompleter], (function(tb, async) {
+          tb.overrideView(MyComp, new View({
+            template: '<dynamic-comp #dynamic></dynamic-comp>',
+            directives: [DynamicComp]
           }));
-          viewFactory.spy('getView').andCallFake((function(protoView) {
-            ListWrapper.push(log, ['getView', protoView]);
-            return childView;
+          tb.createView(MyComp).then((function(view) {
+            var dynamicComponent = view.rawView.locals.get("dynamic");
+            dynamicComponent.done.then((function(ref) {
+              expect(ref.instance.dynamicallyCreatedComponentService).toBeAnInstanceOf(DynamicallyCreatedComponentService);
+              async.done();
+            }));
           }));
-          compiler.spy('compile').andCallFake((function(_) {
-            return PromiseWrapper.resolve(protoView);
+        })));
+        it('should allow to destroy and create them via viewport directives', inject([TestBed, AsyncTestCompleter], (function(tb, async) {
+          tb.overrideView(MyComp, new View({
+            template: '<div><dynamic-comp #dynamic template="if: ctxBoolProp"></dynamic-comp></div>',
+            directives: [DynamicComp, If]
           }));
-          var elementRef = createElementRef(hostView, 23);
-          loader.loadIntoExistingLocation(SomeComponent, elementRef).then((function(componentRef) {
-            expect(log[0]).toEqual(['getView', protoView]);
-            expect(log[1]).toEqual(['hydrateDynamicComponentView', hostView, 23, childView]);
-            async.done();
+          tb.createView(MyComp).then((function(view) {
+            view.context.ctxBoolProp = true;
+            view.detectChanges();
+            var dynamicComponent = view.rawView.viewContainers[0].get(0).locals.get("dynamic");
+            dynamicComponent.done.then((function(_) {
+              view.detectChanges();
+              expect(view.rootNodes).toHaveText('hello');
+              view.context.ctxBoolProp = false;
+              view.detectChanges();
+              expect(view.rawView.viewContainers[0].length).toBe(0);
+              expect(view.rootNodes).toHaveText('');
+              view.context.ctxBoolProp = true;
+              view.detectChanges();
+              var dynamicComponent = view.rawView.viewContainers[0].get(0).locals.get("dynamic");
+              return dynamicComponent.done;
+            })).then((function(_) {
+              view.detectChanges();
+              expect(view.rootNodes).toHaveText('hello');
+              async.done();
+            }));
           }));
         })));
       }));
-    }));
+      describe("loading next to an existing location", (function() {
+        it('should work', inject([DynamicComponentLoader, TestBed, AsyncTestCompleter], (function(loader, tb, async) {
+          tb.overrideView(MyComp, new View({
+            template: '<div><location #loc></location></div>',
+            directives: [Location]
+          }));
+          tb.createView(MyComp).then((function(view) {
+            var location = view.rawView.locals.get("loc");
+            loader.loadNextToExistingLocation(DynamicallyLoaded, location.elementRef).then((function(ref) {
+              expect(view.rootNodes).toHaveText("Location;DynamicallyLoaded;");
+              async.done();
+            }));
+          }));
+        })));
+        it('should return a disposable component ref', inject([DynamicComponentLoader, TestBed, AsyncTestCompleter], (function(loader, tb, async) {
+          tb.overrideView(MyComp, new View({
+            template: '<div><location #loc></location></div>',
+            directives: [Location]
+          }));
+          tb.createView(MyComp).then((function(view) {
+            var location = view.rawView.locals.get("loc");
+            loader.loadNextToExistingLocation(DynamicallyLoaded, location.elementRef).then((function(ref) {
+              loader.loadNextToExistingLocation(DynamicallyLoaded2, location.elementRef).then((function(ref2) {
+                expect(view.rootNodes).toHaveText("Location;DynamicallyLoaded;DynamicallyLoaded2;");
+                ref2.dispose();
+                expect(view.rootNodes).toHaveText("Location;DynamicallyLoaded;");
+                async.done();
+              }));
+            }));
+          }));
+        })));
+      }));
+      describe('loading into a new location', (function() {
+        it('should allow to create, update and destroy components', inject([TestBed, AsyncTestCompleter], (function(tb, async) {
+          tb.overrideView(MyComp, new View({
+            template: '<imp-ng-cmp #impview></imp-ng-cmp>',
+            directives: [ImperativeViewComponentUsingNgComponent]
+          }));
+          tb.createView(MyComp).then((function(view) {
+            var userViewComponent = view.rawView.locals.get("impview");
+            userViewComponent.done.then((function(childComponentRef) {
+              view.detectChanges();
+              expect(view.rootNodes).toHaveText('hello');
+              childComponentRef.instance.ctxProp = 'new';
+              view.detectChanges();
+              expect(view.rootNodes).toHaveText('new');
+              childComponentRef.dispose();
+              expect(view.rootNodes).toHaveText('');
+              async.done();
+            }));
+          }));
+        })));
+      }));
+    });
   }
   $__export("main", main);
   return {
     setters: [function($__m) {
+      assert = $__m.assert;
+    }, function($__m) {
       AsyncTestCompleter = $__m.AsyncTestCompleter;
       beforeEach = $__m.beforeEach;
       ddescribe = $__m.ddescribe;
@@ -124,114 +165,124 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
       beforeEachBindings = $__m.beforeEachBindings;
       it = $__m.it;
       xit = $__m.xit;
-      SpyObject = $__m.SpyObject;
-      proxy = $__m.proxy;
     }, function($__m) {
-      IMPLEMENTS = $__m.IMPLEMENTS;
+      TestBed = $__m.TestBed;
     }, function($__m) {
-      MapWrapper = $__m.MapWrapper;
-      ListWrapper = $__m.ListWrapper;
+      Decorator = $__m.Decorator;
+      Component = $__m.Component;
+      Viewport = $__m.Viewport;
+      DynamicComponent = $__m.DynamicComponent;
     }, function($__m) {
-      Promise = $__m.Promise;
-      PromiseWrapper = $__m.PromiseWrapper;
-    }, function($__m) {
-      DirectiveMetadataReader = $__m.DirectiveMetadataReader;
+      View = $__m.View;
     }, function($__m) {
       DynamicComponentLoader = $__m.DynamicComponentLoader;
     }, function($__m) {
-      Decorator = $__m.Decorator;
-      Viewport = $__m.Viewport;
-      Component = $__m.Component;
-    }, function($__m) {
       ElementRef = $__m.ElementRef;
-      ElementInjector = $__m.ElementInjector;
-      ProtoElementInjector = $__m.ProtoElementInjector;
-      PreBuiltObjects = $__m.PreBuiltObjects;
     }, function($__m) {
-      Compiler = $__m.Compiler;
+      If = $__m.If;
     }, function($__m) {
-      AppProtoView = $__m.AppProtoView;
-      AppView = $__m.AppView;
-    }, function($__m) {
-      ViewFactory = $__m.ViewFactory;
-    }, function($__m) {
-      AppViewHydrator = $__m.AppViewHydrator;
+      DirectDomRenderer = $__m.DirectDomRenderer;
     }],
     execute: function() {
-      SomeDecorator = (function() {
-        var SomeDecorator = function SomeDecorator() {
-          ;
+      ImperativeViewComponentUsingNgComponent = (function() {
+        var ImperativeViewComponentUsingNgComponent = function ImperativeViewComponentUsingNgComponent(self, dynamicComponentLoader, renderer) {
+          assert.argumentTypes(self, ElementRef, dynamicComponentLoader, DynamicComponentLoader, renderer, DirectDomRenderer);
+          var div = el('<div></div>');
+          renderer.setImperativeComponentRootNodes(self.hostView.render, self.boundElementIndex, [div]);
+          this.done = dynamicComponentLoader.loadIntoNewLocation(ChildComp, self, div, null);
         };
-        return ($traceurRuntime.createClass)(SomeDecorator, {}, {});
+        return ($traceurRuntime.createClass)(ImperativeViewComponentUsingNgComponent, {}, {});
       }());
-      Object.defineProperty(SomeDecorator, "annotations", {get: function() {
-          return [new Decorator({selector: 'someDecorator'})];
+      Object.defineProperty(ImperativeViewComponentUsingNgComponent, "annotations", {get: function() {
+          return [new Component({selector: 'imp-ng-cmp'}), new View({renderer: 'imp-ng-cmp-renderer'})];
         }});
-      SomeViewport = (function() {
-        var SomeViewport = function SomeViewport() {
-          ;
+      Object.defineProperty(ImperativeViewComponentUsingNgComponent, "parameters", {get: function() {
+          return [[ElementRef], [DynamicComponentLoader], [DirectDomRenderer]];
+        }});
+      ChildComp = (function() {
+        var ChildComp = function ChildComp() {
+          this.ctxProp = 'hello';
         };
-        return ($traceurRuntime.createClass)(SomeViewport, {}, {});
+        return ($traceurRuntime.createClass)(ChildComp, {}, {});
       }());
-      Object.defineProperty(SomeViewport, "annotations", {get: function() {
-          return [new Viewport({selector: 'someViewport'})];
+      Object.defineProperty(ChildComp, "annotations", {get: function() {
+          return [new Component({selector: 'child-cmp'}), new View({template: '{{ctxProp}}'})];
         }});
-      SomeComponent = (function() {
-        var SomeComponent = function SomeComponent() {
+      DynamicallyCreatedComponentService = (function() {
+        var DynamicallyCreatedComponentService = function DynamicallyCreatedComponentService() {
           ;
         };
-        return ($traceurRuntime.createClass)(SomeComponent, {}, {});
+        return ($traceurRuntime.createClass)(DynamicallyCreatedComponentService, {}, {});
       }());
-      Object.defineProperty(SomeComponent, "annotations", {get: function() {
-          return [new Component({selector: 'someComponent'})];
+      DynamicComp = (function() {
+        var DynamicComp = function DynamicComp(loader, location) {
+          assert.argumentTypes(loader, DynamicComponentLoader, location, ElementRef);
+          this.done = loader.loadIntoExistingLocation(DynamicallyCreatedCmp, location);
+        };
+        return ($traceurRuntime.createClass)(DynamicComp, {}, {});
+      }());
+      Object.defineProperty(DynamicComp, "annotations", {get: function() {
+          return [new DynamicComponent({selector: 'dynamic-comp'})];
         }});
-      SpyCompiler = (function($__super) {
-        var SpyCompiler = function SpyCompiler() {
-          $traceurRuntime.superConstructor(SpyCompiler).apply(this, arguments);
+      Object.defineProperty(DynamicComp, "parameters", {get: function() {
+          return [[DynamicComponentLoader], [ElementRef]];
+        }});
+      DynamicallyCreatedCmp = (function() {
+        var DynamicallyCreatedCmp = function DynamicallyCreatedCmp(a) {
+          assert.argumentTypes(a, DynamicallyCreatedComponentService);
+          this.greeting = "hello";
+          this.dynamicallyCreatedComponentService = a;
+        };
+        return ($traceurRuntime.createClass)(DynamicallyCreatedCmp, {}, {});
+      }());
+      Object.defineProperty(DynamicallyCreatedCmp, "annotations", {get: function() {
+          return [new Component({
+            selector: 'hello-cmp',
+            injectables: [DynamicallyCreatedComponentService]
+          }), new View({template: "{{greeting}}"})];
+        }});
+      Object.defineProperty(DynamicallyCreatedCmp, "parameters", {get: function() {
+          return [[DynamicallyCreatedComponentService]];
+        }});
+      DynamicallyLoaded = (function() {
+        var DynamicallyLoaded = function DynamicallyLoaded() {
           ;
         };
-        return ($traceurRuntime.createClass)(SpyCompiler, {noSuchMethod: function(m) {
-            return $traceurRuntime.superGet(this, SpyCompiler.prototype, "noSuchMethod").call(this, m);
-          }}, {}, $__super);
-      }(SpyObject));
-      Object.defineProperty(SpyCompiler, "annotations", {get: function() {
-          return [new proxy, new IMPLEMENTS(Compiler)];
+        return ($traceurRuntime.createClass)(DynamicallyLoaded, {}, {});
+      }());
+      Object.defineProperty(DynamicallyLoaded, "annotations", {get: function() {
+          return [new Component({selector: 'dummy'}), new View({template: "DynamicallyLoaded;"})];
         }});
-      SpyViewFactory = (function($__super) {
-        var SpyViewFactory = function SpyViewFactory() {
-          $traceurRuntime.superConstructor(SpyViewFactory).apply(this, arguments);
+      DynamicallyLoaded2 = (function() {
+        var DynamicallyLoaded2 = function DynamicallyLoaded2() {
           ;
         };
-        return ($traceurRuntime.createClass)(SpyViewFactory, {noSuchMethod: function(m) {
-            return $traceurRuntime.superGet(this, SpyViewFactory.prototype, "noSuchMethod").call(this, m);
-          }}, {}, $__super);
-      }(SpyObject));
-      Object.defineProperty(SpyViewFactory, "annotations", {get: function() {
-          return [new proxy, new IMPLEMENTS(ViewFactory)];
+        return ($traceurRuntime.createClass)(DynamicallyLoaded2, {}, {});
+      }());
+      Object.defineProperty(DynamicallyLoaded2, "annotations", {get: function() {
+          return [new Component({selector: 'dummy'}), new View({template: "DynamicallyLoaded2;"})];
         }});
-      SpyAppViewHydrator = (function($__super) {
-        var SpyAppViewHydrator = function SpyAppViewHydrator() {
-          $traceurRuntime.superConstructor(SpyAppViewHydrator).apply(this, arguments);
-          ;
+      Location = (function() {
+        var Location = function Location(elementRef) {
+          assert.argumentTypes(elementRef, ElementRef);
+          this.elementRef = elementRef;
         };
-        return ($traceurRuntime.createClass)(SpyAppViewHydrator, {noSuchMethod: function(m) {
-            return $traceurRuntime.superGet(this, SpyAppViewHydrator.prototype, "noSuchMethod").call(this, m);
-          }}, {}, $__super);
-      }(SpyObject));
-      Object.defineProperty(SpyAppViewHydrator, "annotations", {get: function() {
-          return [new proxy, new IMPLEMENTS(AppViewHydrator)];
+        return ($traceurRuntime.createClass)(Location, {}, {});
+      }());
+      Object.defineProperty(Location, "annotations", {get: function() {
+          return [new Component({selector: 'location'}), new View({template: "Location;"})];
         }});
-      SpyAppView = (function($__super) {
-        var SpyAppView = function SpyAppView() {
-          $traceurRuntime.superConstructor(SpyAppView).apply(this, arguments);
-          ;
+      Object.defineProperty(Location, "parameters", {get: function() {
+          return [[ElementRef]];
+        }});
+      MyComp = (function() {
+        var MyComp = function MyComp() {
+          this.ctxBoolProp = false;
         };
-        return ($traceurRuntime.createClass)(SpyAppView, {noSuchMethod: function(m) {
-            return $traceurRuntime.superGet(this, SpyAppView.prototype, "noSuchMethod").call(this, m);
-          }}, {}, $__super);
-      }(SpyObject));
-      Object.defineProperty(SpyAppView, "annotations", {get: function() {
-          return [new proxy, new IMPLEMENTS(AppView)];
+        return ($traceurRuntime.createClass)(MyComp, {}, {});
+      }());
+      Object.defineProperty(MyComp, "annotations", {get: function() {
+          return [new Component(), new View({directives: []})];
         }});
     }
   };

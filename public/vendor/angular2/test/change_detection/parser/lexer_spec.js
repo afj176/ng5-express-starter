@@ -1,6 +1,7 @@
 System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/change_detection/parser/lexer", "angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
   "use strict";
   var assert,
+      ddescribe,
       describe,
       it,
       expect,
@@ -134,7 +135,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/c
           expect(tokens[0].toString()).toEqual('\u00a0');
         });
         it('should tokenize relation', function() {
-          var tokens = assert.type(lex("! == != < > <= >="), assert.genericType(List, Token));
+          var tokens = assert.type(lex("! == != < > <= >= === !=="), assert.genericType(List, Token));
           expectOperatorToken(tokens[0], 0, '!');
           expectOperatorToken(tokens[1], 2, '==');
           expectOperatorToken(tokens[2], 5, '!=');
@@ -142,6 +143,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/c
           expectOperatorToken(tokens[4], 10, '>');
           expectOperatorToken(tokens[5], 12, '<=');
           expectOperatorToken(tokens[6], 15, '>=');
+          expectOperatorToken(tokens[7], 18, '===');
+          expectOperatorToken(tokens[8], 22, '!==');
         });
         it('should tokenize statements', function() {
           var tokens = assert.type(lex("a;b;"), assert.genericType(List, Token));
@@ -217,6 +220,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/c
     setters: [function($__m) {
       assert = $__m.assert;
     }, function($__m) {
+      ddescribe = $__m.ddescribe;
       describe = $__m.describe;
       it = $__m.it;
       expect = $__m.expect;

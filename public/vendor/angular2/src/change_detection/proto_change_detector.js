@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular2/src/facade/collection", "./parser/ast", "./interfaces", "./change_detection_util", "./dynamic_change_detector", "./change_detection_jit_generator", "./pipes/pipe_registry", "./binding_record", "./coalesce", "./proto_record"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular2/src/facade/collection", "./parser/ast", "./interfaces", "./change_detection_util", "./dynamic_change_detector", "./change_detection_jit_generator", "./pipes/pipe_registry", "./binding_record", "./directive_record", "./coalesce", "./proto_record"], function($__export) {
   "use strict";
   var assert,
       isPresent,
@@ -36,6 +36,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       ChangeDetectorJITGenerator,
       PipeRegistry,
       BindingRecord,
+      DirectiveIndex,
       coalesce,
       ProtoRecord,
       RECORD_TYPE_SELF,
@@ -257,6 +258,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
     }, function($__m) {
       BindingRecord = $__m.BindingRecord;
     }, function($__m) {
+      DirectiveIndex = $__m.DirectiveIndex;
+    }, function($__m) {
       coalesce = $__m.coalesce;
     }, function($__m) {
       ProtoRecord = $__m.ProtoRecord;
@@ -381,7 +384,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         return ($traceurRuntime.createClass)(_ConvertAstIntoProtoRecords, {
           visitImplicitReceiver: function(ast) {
             assert.argumentTypes(ast, ImplicitReceiver);
-            return 0;
+            return this.bindingRecord.implicitReceiver;
           },
           visitInterpolation: function(ast) {
             assert.argumentTypes(ast, Interpolation);
@@ -468,7 +471,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           },
           _addRecord: function(type, name, funcOrValue, args, fixedArgs, context) {
             var selfIndex = ++this.contextIndex;
-            ListWrapper.push(this.protoRecords, new ProtoRecord(type, name, funcOrValue, args, fixedArgs, context, selfIndex, this.bindingRecord, this.expressionAsString, false, false));
+            if (context instanceof DirectiveIndex) {
+              ListWrapper.push(this.protoRecords, new ProtoRecord(type, name, funcOrValue, args, fixedArgs, -1, context, selfIndex, this.bindingRecord, this.expressionAsString, false, false));
+            } else {
+              ListWrapper.push(this.protoRecords, new ProtoRecord(type, name, funcOrValue, args, fixedArgs, context, null, selfIndex, this.bindingRecord, this.expressionAsString, false, false));
+            }
             return selfIndex;
           }
         }, {convert: function(b, contextIndex, variableBindings) {

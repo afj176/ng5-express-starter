@@ -14,6 +14,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
       ChangeRecord,
       BindingRecord,
       DirectiveRecord,
+      DirectiveIndex,
       ChangeDetectorRef,
       ProtoElementInjector,
       ElementInjector,
@@ -50,6 +51,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
       ChangeRecord = $__m.ChangeRecord;
       BindingRecord = $__m.BindingRecord;
       DirectiveRecord = $__m.DirectiveRecord;
+      DirectiveIndex = $__m.DirectiveIndex;
       ChangeDetectorRef = $__m.ChangeDetectorRef;
     }, function($__m) {
       ProtoElementInjector = $__m.ProtoElementInjector;
@@ -77,8 +79,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
     }],
     execute: function() {
       AppView = $__export("AppView", (function() {
-        var AppView = function AppView(renderer, viewFactory, viewHydrator, proto, protoLocals) {
-          assert.argumentTypes(renderer, renderApi.Renderer, viewFactory, vfModule.ViewFactory, viewHydrator, vhModule.AppViewHydrator, proto, AppProtoView, protoLocals, Map);
+        var AppView = function AppView(renderer, viewFactory, proto, protoLocals) {
+          assert.argumentTypes(renderer, renderApi.Renderer, viewFactory, vfModule.ViewFactory, proto, AppProtoView, protoLocals, Map);
           this.render = null;
           this.proto = proto;
           this.changeDetector = null;
@@ -91,7 +93,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           this.locals = new Locals(null, MapWrapper.clone(protoLocals));
           this.renderer = renderer;
           this.viewFactory = viewFactory;
-          this.viewHydrator = viewHydrator;
+          this.viewHydrator = null;
+          this.imperativeHostViews = [];
         };
         return ($traceurRuntime.createClass)(AppView, {
           init: function(changeDetector, elementInjectors, rootElementInjectors, preBuiltObjects, componentChildViews) {
@@ -109,7 +112,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
               viewContainer = new ViewContainer(this, this.proto.elementBinders[boundElementIndex].nestedProtoView, this.elementInjectors[boundElementIndex]);
               this.viewContainers[boundElementIndex] = viewContainer;
             }
-            return viewContainer;
+            return assert.returnType((viewContainer), ViewContainer);
           },
           setLocal: function(contextName, value) {
             assert.argumentTypes(contextName, assert.type.string, value, assert.type.any);
@@ -122,7 +125,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
             this.locals.set(templateName, value);
           },
           hydrated: function() {
-            return isPresent(this.context);
+            return assert.returnType((isPresent(this.context)), assert.type.boolean);
           },
           triggerEventHandlers: function(eventName, eventObj, binderIndex) {
             assert.argumentTypes(eventName, assert.type.string, eventObj, assert.type.any, binderIndex, int);
@@ -139,25 +142,26 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
             }
           },
           getDirectiveFor: function(directive) {
-            assert.argumentTypes(directive, DirectiveRecord);
+            assert.argumentTypes(directive, DirectiveIndex);
             var elementInjector = this.elementInjectors[directive.elementIndex];
             return elementInjector.getDirectiveAtIndex(directive.directiveIndex);
           },
           getDetectorFor: function(directive) {
-            assert.argumentTypes(directive, DirectiveRecord);
+            assert.argumentTypes(directive, DirectiveIndex);
             var elementInjector = this.elementInjectors[directive.elementIndex];
             return elementInjector.getChangeDetector();
           },
           dispatchEvent: function(elementIndex, eventName, locals) {
             var $__0 = this;
             assert.argumentTypes(elementIndex, assert.type.number, eventName, assert.type.string, locals, assert.genericType(Map, assert.type.string, assert.type.any));
+            var allowDefaultBehavior = true;
             if (this.hydrated()) {
               var elBinder = this.proto.elementBinders[elementIndex];
               if (isBlank(elBinder.hostListeners))
-                return ;
+                return assert.returnType((allowDefaultBehavior), assert.type.boolean);
               var eventMap = elBinder.hostListeners[eventName];
               if (isBlank(eventMap))
-                return ;
+                return assert.returnType((allowDefaultBehavior), assert.type.boolean);
               MapWrapper.forEach(eventMap, (function(expr, directiveIndex) {
                 var context;
                 if (directiveIndex === -1) {
@@ -165,9 +169,13 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
                 } else {
                   context = $__0.elementInjectors[elementIndex].getDirectiveAtIndex(directiveIndex);
                 }
-                expr.eval(context, new Locals($__0.locals, locals));
+                var result = expr.eval(context, new Locals($__0.locals, locals));
+                if (isPresent(result)) {
+                  allowDefaultBehavior = allowDefaultBehavior && result;
+                }
               }));
             }
+            return assert.returnType((allowDefaultBehavior), assert.type.boolean);
           }
         }, {});
       }()));
@@ -175,7 +183,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           return [new IMPLEMENTS(ChangeDispatcher)];
         }});
       Object.defineProperty(AppView, "parameters", {get: function() {
-          return [[renderApi.Renderer], [vfModule.ViewFactory], [vhModule.AppViewHydrator], [AppProtoView], [Map]];
+          return [[renderApi.Renderer], [vfModule.ViewFactory], [AppProtoView], [Map]];
         }});
       Object.defineProperty(AppView.prototype.init, "parameters", {get: function() {
           return [[ChangeDetector], [List], [List], [List], [List]];
@@ -193,10 +201,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           return [[BindingRecord], [assert.type.any]];
         }});
       Object.defineProperty(AppView.prototype.getDirectiveFor, "parameters", {get: function() {
-          return [[DirectiveRecord]];
+          return [[DirectiveIndex]];
         }});
       Object.defineProperty(AppView.prototype.getDetectorFor, "parameters", {get: function() {
-          return [[DirectiveRecord]];
+          return [[DirectiveIndex]];
         }});
       Object.defineProperty(AppView.prototype.dispatchEvent, "parameters", {get: function() {
           return [[assert.type.number], [assert.type.string], [assert.genericType(Map, assert.type.string, assert.type.any)]];
@@ -220,17 +228,17 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           getVariableBindings: function() {
             var $__0 = this;
             if (isPresent(this._variableBindings)) {
-              return this._variableBindings;
+              return assert.returnType((this._variableBindings), List);
             }
             this._variableBindings = isPresent(this.parentProtoView) ? ListWrapper.clone(this.parentProtoView.getVariableBindings()) : [];
             MapWrapper.forEach(this.protoLocals, (function(v, local) {
               ListWrapper.push($__0._variableBindings, local);
             }));
-            return this._variableBindings;
+            return assert.returnType((this._variableBindings), List);
           },
           getdirectiveRecords: function() {
             if (isPresent(this._directiveRecords)) {
-              return this._directiveRecords;
+              return assert.returnType((this._directiveRecords), List);
             }
             this._directiveRecords = [];
             for (var injectorIndex = 0; injectorIndex < this.elementBinders.length; ++injectorIndex) {
@@ -241,7 +249,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
                 }
               }
             }
-            return this._directiveRecords;
+            return assert.returnType((this._directiveRecords), List);
           },
           bindVariable: function(contextName, templateName) {
             assert.argumentTypes(contextName, assert.type.string, templateName, assert.type.string);
@@ -266,6 +274,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
             assert.argumentTypes(expression, AST, setterName, assert.type.string);
             var elementIndex = this.elementBinders.length - 1;
             var b = BindingRecord.createForElement(expression, elementIndex, setterName);
+            ListWrapper.push(this.bindings, b);
+          },
+          bindHostElementProperty: function(expression, setterName, directiveIndex) {
+            assert.argumentTypes(expression, AST, setterName, assert.type.string, directiveIndex, DirectiveIndex);
+            var b = BindingRecord.createForHostProperty(directiveIndex, expression, setterName);
             ListWrapper.push(this.bindings, b);
           },
           bindEvent: function(eventBindings) {
@@ -302,9 +315,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
             if (!MapWrapper.contains(this._directiveRecordsMap, id)) {
               var binding = protoElementInjector.getDirectiveBindingAtIndex(directiveIndex);
               var changeDetection = binding.changeDetection;
-              MapWrapper.set(this._directiveRecordsMap, id, new DirectiveRecord(elementInjectorIndex, directiveIndex, binding.callOnAllChangesDone, binding.callOnChange, changeDetection));
+              MapWrapper.set(this._directiveRecordsMap, id, new DirectiveRecord(new DirectiveIndex(elementInjectorIndex, directiveIndex), binding.callOnAllChangesDone, binding.callOnChange, changeDetection));
             }
-            return MapWrapper.get(this._directiveRecordsMap, id);
+            return assert.returnType((MapWrapper.get(this._directiveRecordsMap, id)), DirectiveRecord);
           }
         }, {});
       }()));
@@ -322,6 +335,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
         }});
       Object.defineProperty(AppProtoView.prototype.bindElementProperty, "parameters", {get: function() {
           return [[AST], [assert.type.string]];
+        }});
+      Object.defineProperty(AppProtoView.prototype.bindHostElementProperty, "parameters", {get: function() {
+          return [[AST], [assert.type.string], [DirectiveIndex]];
         }});
       Object.defineProperty(AppProtoView.prototype.bindEvent, "parameters", {get: function() {
           return [[assert.genericType(List, renderApi.EventBinding)], [int]];

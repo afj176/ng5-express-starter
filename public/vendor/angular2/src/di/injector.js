@@ -70,7 +70,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", ".
         _flattenBindings(b, res);
       }
     });
-    return res;
+    return assert.returnType((res), Map);
   }
   return {
     setters: [function($__m) {
@@ -223,14 +223,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", ".
             var $__2 = arguments[1] !== (void 0) ? arguments[1] : {},
                 defaultBindings = ($__3 = $__2.defaultBindings) === void 0 ? false : $__3;
             assert.argumentTypes(bindings, List);
-            return new Injector(Injector.resolve(bindings), null, defaultBindings);
+            return assert.returnType((new Injector(Injector.resolve(bindings), null, defaultBindings)), Injector);
           },
           fromResolvedBindings: function(bindings) {
             var $__3;
             var $__2 = arguments[1] !== (void 0) ? arguments[1] : {},
                 defaultBindings = ($__3 = $__2.defaultBindings) === void 0 ? false : $__3;
             assert.argumentTypes(bindings, assert.genericType(List, ResolvedBinding));
-            return new Injector(bindings, null, defaultBindings);
+            return assert.returnType((new Injector(bindings, null, defaultBindings)), Injector);
           }
         });
       }()));

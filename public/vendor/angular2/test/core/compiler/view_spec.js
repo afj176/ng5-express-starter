@@ -56,7 +56,7 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
         return res;
       }
       function createViewWithOneBoundElement(pv) {
-        var view = new AppView(renderer, null, null, pv, MapWrapper.create());
+        var view = new AppView(renderer, null, pv, MapWrapper.create());
         var changeDetector = new SpyChangeDetector();
         var eij = createElementInjector();
         view.init(changeDetector, [eij], [eij], [null], [null]);

@@ -30,7 +30,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
   }
   function _selfRecord(r, contextIndex, selfIndex) {
     assert.argumentTypes(r, ProtoRecord, contextIndex, assert.type.number, selfIndex, assert.type.number);
-    return assert.returnType((new ProtoRecord(RECORD_TYPE_SELF, "self", null, [], r.fixedArgs, contextIndex, selfIndex, r.bindingRecord, r.expressionAsString, r.lastInBinding, r.lastInDirective)), ProtoRecord);
+    return assert.returnType((new ProtoRecord(RECORD_TYPE_SELF, "self", null, [], r.fixedArgs, contextIndex, r.directiveIndex, selfIndex, r.bindingRecord, r.expressionAsString, r.lastInBinding, r.lastInDirective)), ProtoRecord);
   }
   function _findMatching(r, rs) {
     return ListWrapper.find(rs, (function(rr) {
@@ -42,7 +42,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       return _map(indexMap, a);
     }));
     var contextIndex = _map(indexMap, r.contextIndex);
-    return new ProtoRecord(r.mode, r.name, r.funcOrValue, args, r.fixedArgs, contextIndex, selfIndex, r.bindingRecord, r.expressionAsString, r.lastInBinding, r.lastInDirective);
+    return new ProtoRecord(r.mode, r.name, r.funcOrValue, args, r.fixedArgs, contextIndex, r.directiveIndex, selfIndex, r.bindingRecord, r.expressionAsString, r.lastInBinding, r.lastInDirective);
   }
   function _map(indexMap, value) {
     assert.argumentTypes(indexMap, Map, value, assert.type.number);

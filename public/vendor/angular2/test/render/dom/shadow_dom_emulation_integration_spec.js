@@ -28,6 +28,7 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
       StyleInliner,
       IntegrationTestbed,
       simple,
+      empty,
       dynamicComponent,
       multipleContentTagsComponent,
       manualViewportDirective,
@@ -37,6 +38,8 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
       innerInnerComponent,
       conditionalContentComponent,
       autoViewportDirective,
+      tabGroupComponent,
+      tabComponent,
       componentTemplates;
   function main() {
     describe('ShadowDom integration tests', function() {
@@ -69,10 +72,13 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
               compile,
               compileRoot;
           function createRenderer($__0) {
-            var templates = $__0.templates;
+            var $__1 = $__0,
+                templates = $__1.templates,
+                viewCacheCapacity = $__1.viewCacheCapacity;
             testbed = new IntegrationTestbed({
               shadowDomStrategy: strategyFactory(),
-              templates: ListWrapper.concat(templates, componentTemplates)
+              templates: ListWrapper.concat(templates, componentTemplates),
+              viewCacheCapacity: viewCacheCapacity
             });
             renderer = testbed.renderer;
             compileRoot = (function(rootEl) {
@@ -94,6 +100,18 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
             compileRoot('main').then((function(pv) {
               renderer.createInPlaceHostView(null, rootEl, pv.render);
               expect(rootEl).toHaveText('SIMPLE(A)');
+              async.done();
+            }));
+          })));
+          it('should not show the light dom event if there is not content tag', inject([AsyncTestCompleter], (function(async) {
+            createRenderer({templates: [new ViewDefinition({
+                componentId: 'main',
+                template: '<empty>' + '<div>A</div>' + '</empty>',
+                directives: [empty]
+              })]});
+            compileRoot('main').then((function(pv) {
+              renderer.createInPlaceHostView(null, rootEl, pv.render);
+              expect(rootEl).toHaveText('');
               async.done();
             }));
           })));
@@ -218,6 +236,34 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
               async.done();
             }));
           })));
+          it("should support tabs with view caching", inject([AsyncTestCompleter], (function(async) {
+            createRenderer({
+              templates: [new ViewDefinition({
+                componentId: 'main',
+                template: '(<tab><span>0</span></tab>' + '<tab><span>1</span></tab>' + '<tab><span>2</span></tab>)',
+                directives: [tabComponent]
+              })],
+              viewCacheCapacity: 5
+            });
+            compileRoot('main').then((function(pv) {
+              var viewRefs = renderer.createInPlaceHostView(null, rootEl, pv.render);
+              var vcRef0 = new ViewContainerRef(viewRefs[2], 0);
+              var vcRef1 = new ViewContainerRef(viewRefs[3], 0);
+              var vcRef2 = new ViewContainerRef(viewRefs[4], 0);
+              var mainPv = pv.elementBinders[0].nestedProtoView;
+              var pvRef = mainPv.elementBinders[0].nestedProtoView.elementBinders[0].nestedProtoView.render;
+              expect(rootEl).toHaveText('()');
+              renderer.createViewInContainer(vcRef0, 0, pvRef);
+              expect(rootEl).toHaveText('(TAB(0))');
+              renderer.destroyViewInContainer(vcRef0, 0);
+              renderer.createViewInContainer(vcRef1, 0, pvRef);
+              expect(rootEl).toHaveText('(TAB(1))');
+              renderer.destroyViewInContainer(vcRef1, 0);
+              renderer.createViewInContainer(vcRef2, 0, pvRef);
+              expect(rootEl).toHaveText('(TAB(2))');
+              async.done();
+            }));
+          })));
         }));
       }));
     });
@@ -269,6 +315,11 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
         id: 'simple',
         type: DirectiveMetadata.COMPONENT_TYPE
       });
+      empty = new DirectiveMetadata({
+        selector: 'empty',
+        id: 'empty',
+        type: DirectiveMetadata.COMPONENT_TYPE
+      });
       dynamicComponent = new DirectiveMetadata({
         selector: 'dynamic',
         id: 'dynamic',
@@ -314,9 +365,23 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
         id: '[auto]',
         type: DirectiveMetadata.VIEWPORT_TYPE
       });
+      tabGroupComponent = new DirectiveMetadata({
+        selector: 'tab-group',
+        id: 'tab-group',
+        type: DirectiveMetadata.COMPONENT_TYPE
+      });
+      tabComponent = new DirectiveMetadata({
+        selector: 'tab',
+        id: 'tab',
+        type: DirectiveMetadata.COMPONENT_TYPE
+      });
       componentTemplates = [new ViewDefinition({
         componentId: 'simple',
         template: 'SIMPLE(<content></content>)',
+        directives: []
+      }), new ViewDefinition({
+        componentId: 'empty',
+        template: '',
         directives: []
       }), new ViewDefinition({
         componentId: 'multiple-content-tags',
@@ -341,6 +406,14 @@ System.register(["angular2/test_lib", "angular2/src/facade/collection", "angular
       }), new ViewDefinition({
         componentId: 'conditional-content',
         template: '<div>(<div *auto="cond"><content select=".left"></content></div>, <content></content>)</div>',
+        directives: [autoViewportDirective]
+      }), new ViewDefinition({
+        componentId: 'tab-group',
+        template: 'GROUP(<content></content>)',
+        directives: []
+      }), new ViewDefinition({
+        componentId: 'tab',
+        template: '<div><div *auto="cond">TAB(<content></content>)</div></div>',
         directives: [autoViewportDirective]
       })];
     }

@@ -73,10 +73,12 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           var $__2 = $__1,
               directiveIndex = $__2.directiveIndex,
               propertyBindings = $__2.propertyBindings,
-              eventBindings = $__2.eventBindings;
+              eventBindings = $__2.eventBindings,
+              hostPropertyBindings = $__2.hostPropertyBindings;
           this.directiveIndex = directiveIndex;
           this.propertyBindings = propertyBindings;
           this.eventBindings = eventBindings;
+          this.hostPropertyBindings = hostPropertyBindings;
         };
         return ($traceurRuntime.createClass)(DirectiveBinder, {}, {});
       }()));
@@ -111,16 +113,16 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               selector = $__2.selector,
               compileChildren = $__2.compileChildren,
               hostListeners = $__2.hostListeners,
+              hostProperties = $__2.hostProperties,
               properties = $__2.properties,
-              setters = $__2.setters,
               readAttributes = $__2.readAttributes,
               type = $__2.type;
           this.id = id;
           this.selector = selector;
           this.compileChildren = isPresent(compileChildren) ? compileChildren : true;
           this.hostListeners = hostListeners;
+          this.hostProperties = hostProperties;
           this.properties = properties;
-          this.setters = setters;
           this.readAttributes = readAttributes;
           this.type = type;
         };
@@ -179,6 +181,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         };
         return ($traceurRuntime.createClass)(Renderer, {
           createHostProtoView: function(componentId) {
+            return assert.returnType((null), assert.genericType(Promise, ProtoViewDto));
+          },
+          createImperativeComponentProtoView: function(rendererId) {
             return assert.returnType((null), assert.genericType(Promise, ProtoViewDto));
           },
           compile: function(template) {

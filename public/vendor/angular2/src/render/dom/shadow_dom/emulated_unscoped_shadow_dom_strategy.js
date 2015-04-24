@@ -43,7 +43,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/async", "angula
           },
           attachTemplate: function(el, view) {
             assert.argumentTypes(el, assert.type.any, view, viewModule.RenderView);
-            DOM.clearNodes(el);
             moveViewNodesIntoParent(el, view);
           },
           constructLightDom: function(lightDomView, shadowDomView, el) {

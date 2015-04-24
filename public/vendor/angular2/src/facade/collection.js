@@ -222,6 +222,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang"], functio
             assert.argumentTypes(array, assert.type.any, pred, Function);
             return array.filter(pred);
           },
+          indexOf: function(array, value) {
+            var startIndex = arguments[2] !== (void 0) ? arguments[2] : -1;
+            return array.indexOf(value, startIndex);
+          },
           any: function(list, pred) {
             assert.argumentTypes(list, List, pred, Function);
             for (var i = 0; i < list.length; ++i) {
@@ -297,9 +301,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang"], functio
             }
             return assert.returnType((true), assert.type.boolean);
           },
-          slice: function(l, from, to) {
+          slice: function(l) {
+            var from = arguments[1] !== (void 0) ? arguments[1] : 0;
+            var to = arguments[2] !== (void 0) ? arguments[2] : null;
             assert.argumentTypes(l, List, from, int, to, int);
-            return assert.returnType((l.slice(from, to)), List);
+            return assert.returnType((l.slice(from, to === null ? undefined : to)), List);
           },
           splice: function(l, from, length) {
             assert.argumentTypes(l, List, from, int, length, int);

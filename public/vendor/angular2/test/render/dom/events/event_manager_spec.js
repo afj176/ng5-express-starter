@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/render/dom/events/event_manager", "angular2/src/core/zone/vm_turn_zone", "angular2/src/facade/collection", "angular2/src/facade/browser", "angular2/src/dom/dom_adapter"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/render/dom/events/event_manager", "angular2/src/core/zone/vm_turn_zone", "angular2/src/facade/collection", "angular2/src/dom/dom_adapter"], function($__export) {
   "use strict";
   var assert,
       describe,
@@ -18,7 +18,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/r
       ListWrapper,
       Map,
       MapWrapper,
-      document,
       DOM,
       FakeEventManagerPlugin,
       FakeVmTurnZone;
@@ -89,7 +88,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/r
       }));
       it('bubbled events are caught when fired from a child', (function() {
         var element = el('<div><div></div></div>');
-        DOM.appendChild(document.body, element);
+        DOM.appendChild(DOM.defaultDoc().body, element);
         var child = DOM.firstChild(element);
         var dispatchedEvent = DOM.createMouseEvent('click');
         var receivedEvent = null;
@@ -103,7 +102,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/r
       }));
       it('should add and remove global event listeners with correct bubbling', (function() {
         var element = el('<div><div></div></div>');
-        DOM.appendChild(document.body, element);
+        DOM.appendChild(DOM.defaultDoc().body, element);
         var dispatchedEvent = DOM.createMouseEvent('click');
         var receivedEvent = null;
         var handler = (function(e) {
@@ -148,8 +147,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/r
       ListWrapper = $__m.ListWrapper;
       Map = $__m.Map;
       MapWrapper = $__m.MapWrapper;
-    }, function($__m) {
-      document = $__m.document;
     }, function($__m) {
       DOM = $__m.DOM;
     }],

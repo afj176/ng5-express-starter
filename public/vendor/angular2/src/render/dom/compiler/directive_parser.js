@@ -90,21 +90,21 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             this._selectorMatcher.match(cssSelector, (function(selector, directiveIndex) {
               var elementBinder = current.bindElement();
               var directive = $__0._directives[directiveIndex];
-              var directiveBinder = elementBinder.bindDirective(directiveIndex);
+              var directiveBinderBuilder = elementBinder.bindDirective(directiveIndex);
               current.compileChildren = current.compileChildren && directive.compileChildren;
               if (isPresent(directive.properties)) {
                 MapWrapper.forEach(directive.properties, (function(bindConfig, dirProperty) {
-                  $__0._bindDirectiveProperty(dirProperty, bindConfig, current, directiveBinder);
+                  $__0._bindDirectiveProperty(dirProperty, bindConfig, current, directiveBinderBuilder);
                 }));
               }
               if (isPresent(directive.hostListeners)) {
                 MapWrapper.forEach(directive.hostListeners, (function(action, eventName) {
-                  $__0._bindDirectiveEvent(eventName, action, current, directiveBinder);
+                  $__0._bindDirectiveEvent(eventName, action, current, directiveBinderBuilder);
                 }));
               }
-              if (isPresent(directive.setters)) {
-                ListWrapper.forEach(directive.setters, (function(propertyName) {
-                  elementBinder.bindPropertySetter(propertyName);
+              if (isPresent(directive.hostProperties)) {
+                MapWrapper.forEach(directive.hostProperties, (function(hostPropertyName, directivePropertyName) {
+                  $__0._bindHostProperty(hostPropertyName, directivePropertyName, current, directiveBinderBuilder);
                 }));
               }
               if (isPresent(directive.readAttributes)) {
@@ -134,7 +134,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               }
             }));
           },
-          _bindDirectiveProperty: function(dirProperty, bindConfig, compileElement, directiveBinder) {
+          _bindDirectiveProperty: function(dirProperty, bindConfig, compileElement, directiveBinderBuilder) {
             var pipes = this._splitBindConfig(bindConfig);
             var elProp = ListWrapper.removeAt(pipes, 0);
             var bindingAst = MapWrapper.get(compileElement.bindElement().propertyBindings, dashCaseToCamelCase(elProp));
@@ -146,17 +146,21 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             }
             if (isPresent(bindingAst)) {
               var fullExpAstWithBindPipes = this._parser.addPipes(bindingAst, pipes);
-              directiveBinder.bindProperty(dirProperty, fullExpAstWithBindPipes);
+              directiveBinderBuilder.bindProperty(dirProperty, fullExpAstWithBindPipes);
             }
           },
-          _bindDirectiveEvent: function(eventName, action, compileElement, directiveBinder) {
+          _bindDirectiveEvent: function(eventName, action, compileElement, directiveBinderBuilder) {
             var ast = this._parser.parseAction(action, compileElement.elementDescription);
             if (StringWrapper.contains(eventName, EVENT_TARGET_SEPARATOR)) {
               var parts = eventName.split(EVENT_TARGET_SEPARATOR);
-              directiveBinder.bindEvent(parts[1], ast, parts[0]);
+              directiveBinderBuilder.bindEvent(parts[1], ast, parts[0]);
             } else {
-              directiveBinder.bindEvent(eventName, ast);
+              directiveBinderBuilder.bindEvent(eventName, ast);
             }
+          },
+          _bindHostProperty: function(hostPropertyName, directivePropertyName, compileElement, directiveBinderBuilder) {
+            var ast = this._parser.parseBinding(directivePropertyName, ("hostProperties of " + compileElement.elementDescription));
+            directiveBinderBuilder.bindHostProperty(hostPropertyName, ast);
           },
           _splitBindConfig: function(bindConfig) {
             return ListWrapper.map(bindConfig.split('|'), (function(s) {

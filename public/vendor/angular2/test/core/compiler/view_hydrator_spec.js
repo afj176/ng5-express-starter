@@ -1,4 +1,4 @@
-System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/core/compiler/view", "angular2/src/render/api", "angular2/change_detection", "angular2/src/core/compiler/element_binder", "angular2/src/core/compiler/element_injector", "angular2/src/core/compiler/directive_metadata_reader", "angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_hydrator"], function($__export) {
+System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/core/compiler/view", "angular2/src/render/api", "angular2/change_detection", "angular2/src/core/compiler/element_binder", "angular2/src/core/compiler/element_injector", "angular2/src/core/compiler/directive_metadata_reader", "angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_hydrator", "angular2/src/core/compiler/view_factory"], function($__export) {
   "use strict";
   var AsyncTestCompleter,
       beforeEach,
@@ -29,22 +29,27 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
       ElementBinder,
       DirectiveBinding,
       ElementInjector,
+      ElementRef,
       DirectiveMetadataReader,
       Component,
       AppViewHydrator,
+      ViewFactory,
       SomeComponent,
       SpyRenderer,
       SpyChangeDetector,
-      SpyElementInjector;
+      SpyElementInjector,
+      SpyViewFactory;
   function main() {
     describe('AppViewHydrator', (function() {
       var renderer;
       var reader;
       var hydrator;
+      var viewFactory;
       beforeEach((function() {
         renderer = new SpyRenderer();
         reader = new DirectiveMetadataReader();
-        hydrator = new AppViewHydrator(renderer);
+        viewFactory = new SpyViewFactory();
+        hydrator = new AppViewHydrator(renderer, viewFactory);
       }));
       function createDirectiveBinding(type) {
         var meta = reader.read(type);
@@ -80,14 +85,14 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
         return createProtoView([createComponentElBinder(createDirectiveBinding(SomeComponent), nestedProtoView)]);
       }
       function createEmptyView() {
-        var view = new AppView(renderer, null, null, createProtoView(), MapWrapper.create());
+        var view = new AppView(renderer, null, createProtoView(), MapWrapper.create());
         var changeDetector = new SpyChangeDetector();
         view.init(changeDetector, [], [], [], []);
         return view;
       }
       function createHostView(pv, shadowView, componentInstance) {
         var elementInjectors = arguments[3] !== (void 0) ? arguments[3] : null;
-        var view = new AppView(renderer, null, null, pv, MapWrapper.create());
+        var view = new AppView(renderer, null, pv, MapWrapper.create());
         var changeDetector = new SpyChangeDetector();
         var eis;
         if (isPresent(elementInjectors)) {
@@ -110,7 +115,7 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
           var view = createHostView(pv, null, null);
           var shadowView = createEmptyView();
           expect((function() {
-            return hydrator.hydrateDynamicComponentView(view, 0, shadowView, null, null);
+            return hydrator.hydrateDynamicComponentView(new ElementRef(null, view, 0, null), shadowView, null, null);
           })).toThrowError('There is no dynamic component directive at element 0');
         }));
         it('should not allow to use static component indices', (function() {
@@ -118,7 +123,7 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
           var view = createHostView(pv, null, null);
           var shadowView = createEmptyView();
           expect((function() {
-            return hydrator.hydrateDynamicComponentView(view, 0, shadowView, null, null);
+            return hydrator.hydrateDynamicComponentView(new ElementRef(null, view, 0, null), shadowView, null, null);
           })).toThrowError('There is no dynamic component directive at element 0');
         }));
         it('should not allow to overwrite an existing component', (function() {
@@ -126,9 +131,10 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
           var shadowView = createEmptyView();
           var view = createHostView(pv, null, null);
           renderer.spy('createDynamicComponentView').andReturn([new ViewRef(), new ViewRef()]);
-          hydrator.hydrateDynamicComponentView(view, 0, shadowView, createDirectiveBinding(SomeComponent), null);
+          var elRef = new ElementRef(null, view, 0, null);
+          hydrator.hydrateDynamicComponentView(elRef, shadowView, createDirectiveBinding(SomeComponent), null);
           expect((function() {
-            return hydrator.hydrateDynamicComponentView(view, 0, shadowView, null, null);
+            return hydrator.hydrateDynamicComponentView(elRef, shadowView, null, null);
           })).toThrowError('There already is a bound component at element 0');
         }));
       }));
@@ -186,12 +192,23 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
           dehydrate(hostView);
           expect(hostView.componentChildViews[0]).toBe(shadowView);
           expect(hostView.changeDetector.spy('removeShadowDomChild')).not.toHaveBeenCalled();
+          expect(viewFactory.spy('returnView')).not.toHaveBeenCalled();
         }));
         it('should clear dynamic child components', (function() {
           createAndHydrate(null);
           dehydrate(hostView);
           expect(hostView.componentChildViews[0]).toBe(null);
           expect(hostView.changeDetector.spy('removeShadowDomChild')).toHaveBeenCalledWith(shadowView.changeDetector);
+          expect(viewFactory.spy('returnView')).toHaveBeenCalledWith(shadowView);
+        }));
+        it('should clear imperatively added child components', (function() {
+          createAndHydrate(createProtoView());
+          var impHostView = createHostView(createHostProtoView(createProtoView()), createEmptyView(), null);
+          shadowView.imperativeHostViews = [impHostView];
+          dehydrate(hostView);
+          expect(shadowView.imperativeHostViews).toEqual([]);
+          expect(viewFactory.spy('returnView')).toHaveBeenCalledWith(impHostView);
+          expect(shadowView.changeDetector.spy('removeChild')).toHaveBeenCalledWith(impHostView.changeDetector);
         }));
       }));
     }));
@@ -235,12 +252,15 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
     }, function($__m) {
       DirectiveBinding = $__m.DirectiveBinding;
       ElementInjector = $__m.ElementInjector;
+      ElementRef = $__m.ElementRef;
     }, function($__m) {
       DirectiveMetadataReader = $__m.DirectiveMetadataReader;
     }, function($__m) {
       Component = $__m.Component;
     }, function($__m) {
       AppViewHydrator = $__m.AppViewHydrator;
+    }, function($__m) {
+      ViewFactory = $__m.ViewFactory;
     }],
     execute: function() {
       SomeComponent = (function() {
@@ -284,6 +304,17 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
       }(SpyObject));
       Object.defineProperty(SpyElementInjector, "annotations", {get: function() {
           return [new proxy, new IMPLEMENTS(ElementInjector)];
+        }});
+      SpyViewFactory = (function($__super) {
+        var SpyViewFactory = function SpyViewFactory() {
+          $traceurRuntime.superConstructor(SpyViewFactory).call(this, ViewFactory);
+        };
+        return ($traceurRuntime.createClass)(SpyViewFactory, {noSuchMethod: function(m) {
+            return $traceurRuntime.superGet(this, SpyViewFactory.prototype, "noSuchMethod").call(this, m);
+          }}, {}, $__super);
+      }(SpyObject));
+      Object.defineProperty(SpyViewFactory, "annotations", {get: function() {
+          return [new proxy, new IMPLEMENTS(ViewFactory)];
         }});
     }
   };

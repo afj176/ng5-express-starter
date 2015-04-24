@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/lang", "angular2/src/facade/collection", "../shadow_dom/light_dom", "../events/event_manager", "./view_factory", "./view_container", "./view"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/lang", "angular2/src/facade/collection", "../shadow_dom/light_dom", "../events/event_manager", "./view_factory", "./view_container", "./view", "../shadow_dom/shadow_dom_strategy"], function($__export) {
   "use strict";
   var assert,
       Injectable,
@@ -16,6 +16,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       ViewFactory,
       vcModule,
       viewModule,
+      ShadowDomStrategy,
       RenderViewHydrator;
   return {
     setters: [function($__m) {
@@ -43,18 +44,21 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       vcModule = $__m;
     }, function($__m) {
       viewModule = $__m;
+    }, function($__m) {
+      ShadowDomStrategy = $__m.ShadowDomStrategy;
     }],
     execute: function() {
       RenderViewHydrator = $__export("RenderViewHydrator", (function() {
-        var RenderViewHydrator = function RenderViewHydrator(eventManager, viewFactory) {
-          assert.argumentTypes(eventManager, EventManager, viewFactory, ViewFactory);
+        var RenderViewHydrator = function RenderViewHydrator(eventManager, viewFactory, shadowDomStrategy) {
+          assert.argumentTypes(eventManager, EventManager, viewFactory, ViewFactory, shadowDomStrategy, ShadowDomStrategy);
           this._eventManager = eventManager;
           this._viewFactory = viewFactory;
+          this._shadowDomStrategy = shadowDomStrategy;
         };
         return ($traceurRuntime.createClass)(RenderViewHydrator, {
           hydrateDynamicComponentView: function(hostView, boundElementIndex, componentView) {
             assert.argumentTypes(hostView, viewModule.RenderView, boundElementIndex, assert.type.number, componentView, viewModule.RenderView);
-            this._viewFactory.setComponentView(hostView, boundElementIndex, componentView);
+            ViewFactory.setComponentView(this._shadowDomStrategy, hostView, boundElementIndex, componentView);
             var lightDom = hostView.lightDoms[boundElementIndex];
             this._viewHydrateRecurse(componentView, lightDom);
             if (isPresent(lightDom)) {
@@ -68,15 +72,17 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           hydrateInPlaceHostView: function(parentView, hostView) {
             assert.argumentTypes(parentView, viewModule.RenderView, hostView, viewModule.RenderView);
             if (isPresent(parentView)) {
-              throw new BaseException('Not supported yet');
+              ListWrapper.push(parentView.imperativeHostViews, hostView);
             }
             this._viewHydrateRecurse(hostView, null);
           },
           dehydrateInPlaceHostView: function(parentView, hostView) {
             assert.argumentTypes(parentView, viewModule.RenderView, hostView, viewModule.RenderView);
             if (isPresent(parentView)) {
-              throw new BaseException('Not supported yet');
+              ListWrapper.remove(parentView.imperativeHostViews, hostView);
             }
+            vcModule.ViewContainer.removeViewNodes(hostView);
+            hostView.rootNodes = [];
             this._viewDehydrateRecurse(hostView);
           },
           hydrateViewInViewContainer: function(viewContainer, view) {
@@ -137,11 +143,20 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
                 this._viewDehydrateRecurse(cv);
                 if (view.proto.elementBinders[i].hasDynamicComponent()) {
                   vcModule.ViewContainer.removeViewNodes(cv);
+                  this._viewFactory.returnView(cv);
                   view.lightDoms[i] = null;
                   view.componentChildViews[i] = null;
                 }
               }
             }
+            for (var i = 0; i < view.imperativeHostViews.length; i++) {
+              var hostView = view.imperativeHostViews[i];
+              this._viewDehydrateRecurse(hostView);
+              vcModule.ViewContainer.removeViewNodes(hostView);
+              hostView.rootNodes = [];
+              this._viewFactory.returnView(hostView);
+            }
+            view.imperativeHostViews = [];
             if (isPresent(view.viewContainers)) {
               for (var i = 0; i < view.viewContainers.length; i++) {
                 var vc = view.viewContainers[i];
@@ -174,7 +189,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           return [new Injectable()];
         }});
       Object.defineProperty(RenderViewHydrator, "parameters", {get: function() {
-          return [[EventManager], [ViewFactory]];
+          return [[EventManager], [ViewFactory], [ShadowDomStrategy]];
         }});
       Object.defineProperty(RenderViewHydrator.prototype.hydrateDynamicComponentView, "parameters", {get: function() {
           return [[viewModule.RenderView], [assert.type.number], [viewModule.RenderView]];

@@ -27,6 +27,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       ChangeDetectionError,
       BindingRecord,
       DirectiveRecord,
+      DirectiveIndex,
       PipeRegistry,
       Pipe,
       NO_CHANGE,
@@ -65,10 +66,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       }, (function(createProtoChangeDetector, name) {
         if (name == "JIT" && IS_DARTIUM)
           return ;
+        var parser = new Parser(new Lexer());
         function ast(exp) {
           var location = arguments[1] !== (void 0) ? arguments[1] : 'location';
           assert.argumentTypes(exp, assert.type.string, location, assert.type.string);
-          var parser = new Parser(new Lexer());
           return parser.parseBinding(exp, location);
         }
         Object.defineProperty(ast, "parameters", {get: function() {
@@ -238,7 +239,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
             }));
           }));
           it("should support interpolation", (function() {
-            var parser = new Parser(new Lexer());
             var pcd = createProtoChangeDetector();
             var ast = parser.parseInterpolation("B{{a}}A", "location");
             var cd = instantiate(pcd, dispatcher, [BindingRecord.createForElement(ast, 0, "memo")]);
@@ -271,9 +271,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
               }));
             }));
             describe("updating directives", (function() {
-              var dirRecord1 = new DirectiveRecord(0, 0, true, true, DEFAULT);
-              var dirRecord2 = new DirectiveRecord(0, 1, true, true, DEFAULT);
-              var dirRecordNoCallbacks = new DirectiveRecord(0, 0, false, false, DEFAULT);
+              var dirRecord1 = new DirectiveRecord(new DirectiveIndex(0, 0), true, true, DEFAULT);
+              var dirRecord2 = new DirectiveRecord(new DirectiveIndex(0, 1), true, true, DEFAULT);
+              var dirRecordNoCallbacks = new DirectiveRecord(new DirectiveIndex(0, 0), false, false, DEFAULT);
               function updateA(exp, dirRecord) {
                 return BindingRecord.createForDirective(ast(exp), "a", (function(o, v) {
                   return o.a = v;
@@ -371,6 +371,19 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
                   parent.detectChanges();
                 }));
               }));
+            }));
+          }));
+          describe("reading directives", (function() {
+            var index = new DirectiveIndex(0, 0);
+            var dirRecord = new DirectiveRecord(index, false, false, DEFAULT);
+            it("should read directive properties", (function() {
+              var directive = new TestDirective();
+              directive.a = "aaa";
+              var pcd = createProtoChangeDetector();
+              var cd = instantiate(pcd, dispatcher, [BindingRecord.createForHostProperty(index, ast("a"), "prop")], [dirRecord]);
+              cd.hydrate(null, null, dirs([directive]));
+              cd.detectChanges();
+              expect(dispatcher.loggedValues).toEqual(['aaa']);
             }));
           }));
           describe("enforce no new changes", (function() {
@@ -502,7 +515,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
               checkedDetector = instantiate(proto, null, [], []);
               checkedDetector.hydrate(null, null, null);
               checkedDetector.mode = CHECKED;
-              dirRecordWithOnPush = new DirectiveRecord(0, 0, false, false, ON_PUSH);
+              dirRecordWithOnPush = new DirectiveRecord(new DirectiveIndex(0, 0), false, false, ON_PUSH);
               updateDirWithOnPushRecord = BindingRecord.createForDirective(ast("42"), "a", (function(o, v) {
                 return o.a = v;
               }), dirRecordWithOnPush);
@@ -673,6 +686,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       ChangeDetectionError = $__m.ChangeDetectionError;
       BindingRecord = $__m.BindingRecord;
       DirectiveRecord = $__m.DirectiveRecord;
+      DirectiveIndex = $__m.DirectiveIndex;
       PipeRegistry = $__m.PipeRegistry;
       Pipe = $__m.Pipe;
       NO_CHANGE = $__m.NO_CHANGE;
@@ -834,13 +848,13 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           this.detectors = detectors;
         };
         return ($traceurRuntime.createClass)(FakeDirectives, {
-          getDirectiveFor: function(directiveRecord) {
-            assert.argumentTypes(directiveRecord, DirectiveRecord);
-            return this.directives[directiveRecord.directiveIndex];
+          getDirectiveFor: function(di) {
+            assert.argumentTypes(di, DirectiveIndex);
+            return this.directives[di.directiveIndex];
           },
-          getDetectorFor: function(directiveRecord) {
-            assert.argumentTypes(directiveRecord, DirectiveRecord);
-            return this.detectors[directiveRecord.directiveIndex];
+          getDetectorFor: function(di) {
+            assert.argumentTypes(di, DirectiveIndex);
+            return this.detectors[di.directiveIndex];
           }
         }, {});
       }());
@@ -848,10 +862,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           return [[List], [List]];
         }});
       Object.defineProperty(FakeDirectives.prototype.getDirectiveFor, "parameters", {get: function() {
-          return [[DirectiveRecord]];
+          return [[DirectiveIndex]];
         }});
       Object.defineProperty(FakeDirectives.prototype.getDetectorFor, "parameters", {get: function() {
-          return [[DirectiveRecord]];
+          return [[DirectiveIndex]];
         }});
       TestDispatcher = (function($__super) {
         var TestDispatcher = function TestDispatcher() {

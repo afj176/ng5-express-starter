@@ -4,7 +4,7 @@ Angular setup loosely based on [Angular Quickstart](https://github.com/angular/q
 
 Included in `./public/vendor/`:
 
-* Pre-built ES5 from Angular 2.0.0-alpha.19
+* Pre-built ES5 from Angular 2.0.0-alpha.20
   * angular2
   * rtts_assert
   * rx.all.js

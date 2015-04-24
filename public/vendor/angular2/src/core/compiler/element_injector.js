@@ -23,7 +23,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       CyclicDependencyError,
       Parent,
       Ancestor,
-      PropertySetter,
       Attribute,
       Query,
       viewModule,
@@ -86,7 +85,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       Parent = $__m.Parent;
       Ancestor = $__m.Ancestor;
     }, function($__m) {
-      PropertySetter = $__m.PropertySetter;
       Attribute = $__m.Attribute;
       Query = $__m.Query;
     }, function($__m) {
@@ -114,28 +112,16 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       MAX_DEPTH = Math.pow(2, 30) - 1;
       _undefined = new Object();
       ElementRef = $__export("ElementRef", (function() {
-        var ElementRef = function ElementRef(elementInjector) {
-          assert.argumentTypes(elementInjector, ElementInjector);
+        var ElementRef = function ElementRef(elementInjector, hostView, boundElementIndex, injector) {
           this.elementInjector = elementInjector;
+          this.hostView = hostView;
+          this.boundElementIndex = boundElementIndex;
+          this.injector = injector;
         };
-        return ($traceurRuntime.createClass)(ElementRef, {
-          get hostView() {
-            return this.elementInjector._preBuiltObjects.view;
-          },
-          get viewContainer() {
+        return ($traceurRuntime.createClass)(ElementRef, {get viewContainer() {
             return this.hostView.getOrCreateViewContainer(this.boundElementIndex);
-          },
-          get injector() {
-            return this.elementInjector._lightDomAppInjector;
-          },
-          get boundElementIndex() {
-            return this.elementInjector._proto.index;
-          }
-        }, {});
+          }}, {});
       }()));
-      Object.defineProperty(ElementRef, "parameters", {get: function() {
-          return [[ElementInjector]];
-        }});
       StaticKeys = (function() {
         var StaticKeys = function StaticKeys() {
           this.viewId = Key.get(viewModule.AppView).id;
@@ -147,7 +133,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         return ($traceurRuntime.createClass)(StaticKeys, {}, {instance: function() {
             if (isBlank(_staticKeys))
               _staticKeys = new StaticKeys();
-            return _staticKeys;
+            return assert.returnType((_staticKeys), StaticKeys);
           }});
       }());
       TreeNode = $__export("TreeNode", (function() {
@@ -274,29 +260,26 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           return [[TreeNode], [TreeNode]];
         }});
       DirectiveDependency = $__export("DirectiveDependency", (function($__super) {
-        var DirectiveDependency = function DirectiveDependency(key, asPromise, lazy, optional, properties, depth, propSetterName, attributeName, queryDirective) {
-          assert.argumentTypes(key, Key, asPromise, assert.type.boolean, lazy, assert.type.boolean, optional, assert.type.boolean, properties, List, depth, int, propSetterName, assert.type.string, attributeName, assert.type.string, queryDirective, assert.type.any);
+        var DirectiveDependency = function DirectiveDependency(key, asPromise, lazy, optional, properties, depth, attributeName, queryDirective) {
+          assert.argumentTypes(key, Key, asPromise, assert.type.boolean, lazy, assert.type.boolean, optional, assert.type.boolean, properties, List, depth, int, attributeName, assert.type.string, queryDirective, assert.type.any);
           $traceurRuntime.superConstructor(DirectiveDependency).call(this, key, asPromise, lazy, optional, properties);
           this.depth = depth;
-          this.propSetterName = propSetterName;
           this.attributeName = attributeName;
           this.queryDirective = queryDirective;
           this._verify();
         };
         return ($traceurRuntime.createClass)(DirectiveDependency, {_verify: function() {
             var count = 0;
-            if (isPresent(this.propSetterName))
-              count++;
             if (isPresent(this.queryDirective))
               count++;
             if (isPresent(this.attributeName))
               count++;
             if (count > 1)
-              throw new BaseException('A directive injectable can contain only one of the following @PropertySetter, @Attribute or @Query.');
+              throw new BaseException('A directive injectable can contain only one of the following @Attribute or @Query.');
           }}, {
           createFrom: function(d) {
             assert.argumentTypes(d, Dependency);
-            return assert.returnType((new DirectiveDependency(d.key, d.asPromise, d.lazy, d.optional, d.properties, DirectiveDependency._depth(d.properties), DirectiveDependency._propSetterName(d.properties), DirectiveDependency._attributeName(d.properties), DirectiveDependency._query(d.properties))), Dependency);
+            return assert.returnType((new DirectiveDependency(d.key, d.asPromise, d.lazy, d.optional, d.properties, DirectiveDependency._depth(d.properties), DirectiveDependency._attributeName(d.properties), DirectiveDependency._query(d.properties))), Dependency);
           },
           _depth: function(properties) {
             if (properties.length == 0)
@@ -310,12 +293,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             })))
               return assert.returnType((MAX_DEPTH), int);
             return assert.returnType((0), int);
-          },
-          _propSetterName: function(properties) {
-            var p = ListWrapper.find(properties, (function(p) {
-              return p instanceof PropertySetter;
-            }));
-            return assert.returnType((isPresent(p) ? p.propName : null), assert.type.string);
           },
           _attributeName: function(properties) {
             var p = ListWrapper.find(properties, (function(p) {
@@ -332,7 +309,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         }, $__super);
       }(Dependency)));
       Object.defineProperty(DirectiveDependency, "parameters", {get: function() {
-          return [[Key], [assert.type.boolean], [assert.type.boolean], [assert.type.boolean], [List], [int], [assert.type.string], [assert.type.string], []];
+          return [[Key], [assert.type.boolean], [assert.type.boolean], [assert.type.boolean], [List], [int], [assert.type.string], []];
         }});
       Object.defineProperty(DirectiveDependency.createFrom, "parameters", {get: function() {
           return [[Dependency]];
@@ -350,6 +327,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           }
         };
         return ($traceurRuntime.createClass)(DirectiveBinding, {
+          get displayName() {
+            return this.key.displayName;
+          },
           get eventEmitters() {
             return assert.returnType((isPresent(this.annotation) && isPresent(this.annotation.events) ? this.annotation.events : []), assert.genericType(List, assert.type.string));
           },
@@ -715,6 +695,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               throw new BaseException('There is no component stored in this ElementInjector');
             }
           },
+          getElementRef: function() {
+            return new ElementRef(this, this._preBuiltObjects.view, this._proto.index, this._lightDomAppInjector);
+          },
           getDynamicallyLoadedComponent: function() {
             return this._dynamicallyCreatedComponent;
           },
@@ -806,24 +789,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           },
           _getByDependency: function(dep, requestor) {
             assert.argumentTypes(dep, DirectiveDependency, requestor, Key);
-            if (isPresent(dep.propSetterName))
-              return this._buildPropSetter(dep);
             if (isPresent(dep.attributeName))
               return this._buildAttribute(dep);
             if (isPresent(dep.queryDirective))
               return this._findQuery(dep.queryDirective).list;
             if (dep.key.id === StaticKeys.instance().elementRefId) {
-              return new ElementRef(this);
+              return this.getElementRef();
             }
             return this._getByKey(dep.key, dep.depth, dep.optional, requestor);
-          },
-          _buildPropSetter: function(dep) {
-            var view = this._getPreBuiltObjectByKeyId(StaticKeys.instance().viewId);
-            var renderer = view.renderer;
-            var index = this._proto.index;
-            return function(v) {
-              renderer.setElementProperty(view.render, index, dep.propSetterName, v);
-            };
           },
           _buildAttribute: function(dep) {
             var attributes = this._proto.attributes;

@@ -17,12 +17,12 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
     for (var i = 0; i < keys.length; ++i) {
       if (ListWrapper.contains(res, keys[i])) {
         ListWrapper.push(res, keys[i]);
-        return res;
+        return assert.returnType((res), List);
       } else {
         ListWrapper.push(res, keys[i]);
       }
     }
-    return res;
+    return assert.returnType((res), List);
   }
   function constructResolvingPath(keys) {
     if (keys.length > 1) {
@@ -30,9 +30,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
       var tokenStrs = ListWrapper.map(reversed, (function(k) {
         return stringify(k.token);
       }));
-      return " (" + tokenStrs.join(' -> ') + ")";
+      return assert.returnType((" (" + tokenStrs.join(' -> ') + ")"), assert.type.string);
     } else {
-      return "";
+      return assert.returnType((""), assert.type.string);
     }
   }
   return {
@@ -65,7 +65,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
             this.message = this.constructResolvingMessage(this.keys);
           },
           toString: function() {
-            return this.message;
+            return assert.returnType((this.message), assert.type.string);
           }
         }, {}, $__super);
       }(Error)));
@@ -102,12 +102,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
         return ($traceurRuntime.createClass)(CyclicDependencyError, {}, {}, $__super);
       }(AbstractBindingError)));
       InstantiationError = $__export("InstantiationError", (function($__super) {
-        var InstantiationError = function InstantiationError(originalException, key) {
+        var InstantiationError = function InstantiationError(cause, key) {
           $traceurRuntime.superConstructor(InstantiationError).call(this, key, function(keys) {
             assert.argumentTypes(keys, List);
             var first = stringify(ListWrapper.first(keys).token);
-            return ("Error during instantiation of " + first + "!" + constructResolvingPath(keys) + ".") + (" ORIGINAL ERROR: " + originalException);
+            return ("Error during instantiation of " + first + "!" + constructResolvingPath(keys) + ".") + (" ORIGINAL ERROR: " + cause);
           });
+          this.cause = cause;
+          this.causeKey = key;
         };
         return ($traceurRuntime.createClass)(InstantiationError, {}, {}, $__super);
       }(AbstractBindingError)));
@@ -117,7 +119,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           this.message = ("Invalid binding " + binding);
         };
         return ($traceurRuntime.createClass)(InvalidBindingError, {toString: function() {
-            return this.message;
+            return assert.returnType((this.message), assert.type.string);
           }}, {}, $__super);
       }(Error)));
       NoAnnotationError = $__export("NoAnnotationError", (function($__super) {
@@ -126,7 +128,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           this.message = ("Cannot resolve all parameters for " + stringify(typeOrFunc) + ".") + " Make sure they all have valid type or annotations.";
         };
         return ($traceurRuntime.createClass)(NoAnnotationError, {toString: function() {
-            return this.message;
+            return assert.returnType((this.message), assert.type.string);
           }}, {}, $__super);
       }(Error)));
     }

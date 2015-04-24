@@ -11,6 +11,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       StringMapWrapper,
       AbstractChangeDetector,
       ChangeDetectionUtil,
+      DirectiveIndex,
       DirectiveRecord,
       ProtoRecord,
       RECORD_TYPE_SELF,
@@ -55,11 +56,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
     assert.argumentTypes(type, assert.type.string, mode, assert.type.string, fieldDefinitions, assert.type.string, pipeOnDestroy, assert.type.string, directiveFieldNames, assert.genericType(List, String), detectorFieldNames, assert.genericType(List, String));
     var directiveInit = "";
     for (var i = 0; i < directiveFieldNames.length; ++i) {
-      directiveInit += (directiveFieldNames[i] + " = directives.getDirectiveFor(this.directiveRecords[" + i + "]);\n");
+      directiveInit += (directiveFieldNames[i] + " = directives.getDirectiveFor(this.directiveRecords[" + i + "].directiveIndex);\n");
     }
     var detectorInit = "";
     for (var i = 0; i < detectorFieldNames.length; ++i) {
-      detectorInit += (detectorFieldNames[i] + " = directives.getDetectorFor(this.directiveRecords[" + i + "]);\n");
+      detectorInit += (detectorFieldNames[i] + " = directives.getDetectorFor(this.directiveRecords[" + i + "].directiveIndex);\n");
     }
     return assert.returnType((("\n" + type + ".prototype.hydrate = function(context, locals, directives) {\n  " + MODE_ACCESSOR + " = \"" + mode + "\";\n  " + CONTEXT_ACCESSOR + " = context;\n  " + LOCALS_ACCESSOR + " = locals;\n  " + directiveInit + "\n  " + detectorInit + "\n}\n" + type + ".prototype.dehydrate = function() {\n  " + pipeOnDestroy + "\n  " + fieldDefinitions + "\n  " + LOCALS_ACCESSOR + " = null;\n}\n" + type + ".prototype.hydrated = function() {\n  return " + CONTEXT_ACCESSOR + " !== " + UTIL + ".unitialized();\n}\n")), assert.type.string);
   }
@@ -153,6 +154,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
     }, function($__m) {
       ChangeDetectionUtil = $__m.ChangeDetectionUtil;
     }, function($__m) {
+      DirectiveIndex = $__m.DirectiveIndex;
       DirectiveRecord = $__m.DirectiveRecord;
     }, function($__m) {
       ProtoRecord = $__m.ProtoRecord;
@@ -296,7 +298,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           getDirectiveFieldNames: function() {
             var $__0 = this;
             return assert.returnType((this.directiveRecords.map((function(d) {
-              return $__0.getDirective(d);
+              return $__0.getDirective(d.directiveIndex);
             }))), assert.genericType(List, assert.type.string));
           },
           getDetectorFieldNames: function() {
@@ -304,15 +306,15 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             return assert.returnType((this.directiveRecords.filter((function(r) {
               return r.isOnPushChangeDetection();
             })).map((function(d) {
-              return $__0.getDetector(d);
+              return $__0.getDetector(d.directiveIndex);
             }))), assert.genericType(List, assert.type.string));
           },
           getDirective: function(d) {
-            assert.argumentTypes(d, DirectiveRecord);
+            assert.argumentTypes(d, DirectiveIndex);
             return ("this.directive_" + d.name);
           },
           getDetector: function(d) {
-            assert.argumentTypes(d, DirectiveRecord);
+            assert.argumentTypes(d, DirectiveIndex);
             return ("this.detector_" + d.name);
           },
           genFieldDefinitions: function() {
@@ -343,7 +345,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             for (var i = dirs.length - 1; i >= 0; --i) {
               var dir = dirs[i];
               if (dir.callOnAllChangesDone) {
-                var directive = ("this.directive_" + dir.name);
+                var directive = ("this.directive_" + dir.directiveIndex.name);
                 notifications.push(onAllChangesDoneTemplate(directive));
               }
             }
@@ -401,7 +403,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           },
           genUpdateCurrentValue: function(r) {
             assert.argumentTypes(r, ProtoRecord);
-            var context = this.localNames[r.contextIndex];
+            var context = this.getContext(r);
             var newValue = this.localNames[r.selfIndex];
             var args = this.genArgs(r);
             switch (r.mode) {
@@ -426,6 +428,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
                 return assert.returnType((assignmentTemplate(newValue, (context + "[" + key + "]"))), assert.type.string);
               default:
                 throw new BaseException(("Unknown operation " + r.mode));
+            }
+          },
+          getContext: function(r) {
+            assert.argumentTypes(r, ProtoRecord);
+            if (r.contextIndex == -1) {
+              return assert.returnType((this.getDirective(r.directiveIndex)), assert.type.string);
+            } else {
+              return assert.returnType((this.localNames[r.contextIndex]), assert.type.string);
             }
           },
           ifChangedGuard: function(r, body) {
@@ -457,7 +467,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             var oldValue = this.fieldNames[r.selfIndex];
             var br = r.bindingRecord;
             if (br.isDirective()) {
-              var directiveProperty = (this.getDirective(br.directiveRecord) + "." + br.propertyName);
+              var directiveProperty = (this.getDirective(br.directiveRecord.directiveIndex) + "." + br.propertyName);
               return assert.returnType((updateDirectiveTemplate(oldValue, newValue, directiveProperty)), assert.type.string);
             } else {
               return assert.returnType((updateElementTemplate(oldValue, newValue)), assert.type.string);
@@ -479,7 +489,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             assert.argumentTypes(r, ProtoRecord);
             var br = r.bindingRecord;
             if (r.lastInDirective && br.callOnChange()) {
-              return assert.returnType((notifyOnChangesTemplate(this.getDirective(br.directiveRecord))), assert.type.string);
+              return assert.returnType((notifyOnChangesTemplate(this.getDirective(br.directiveRecord.directiveIndex))), assert.type.string);
             } else {
               return assert.returnType((""), assert.type.string);
             }
@@ -488,7 +498,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             assert.argumentTypes(r, ProtoRecord);
             var br = r.bindingRecord;
             if (r.lastInDirective && br.isOnPushChangeDetection()) {
-              return assert.returnType((notifyOnPushDetectorsTemplate(this.getDetector(br.directiveRecord))), assert.type.string);
+              return assert.returnType((notifyOnPushDetectorsTemplate(this.getDetector(br.directiveRecord.directiveIndex))), assert.type.string);
             } else {
               return assert.returnType((""), assert.type.string);
             }
@@ -517,10 +527,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           return [[assert.genericType(List, assert.type.string)]];
         }});
       Object.defineProperty(ChangeDetectorJITGenerator.prototype.getDirective, "parameters", {get: function() {
-          return [[DirectiveRecord]];
+          return [[DirectiveIndex]];
         }});
       Object.defineProperty(ChangeDetectorJITGenerator.prototype.getDetector, "parameters", {get: function() {
-          return [[DirectiveRecord]];
+          return [[DirectiveIndex]];
         }});
       Object.defineProperty(ChangeDetectorJITGenerator.prototype.genRecord, "parameters", {get: function() {
           return [[ProtoRecord]];
@@ -532,6 +542,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           return [[ProtoRecord]];
         }});
       Object.defineProperty(ChangeDetectorJITGenerator.prototype.genUpdateCurrentValue, "parameters", {get: function() {
+          return [[ProtoRecord]];
+        }});
+      Object.defineProperty(ChangeDetectorJITGenerator.prototype.getContext, "parameters", {get: function() {
           return [[ProtoRecord]];
         }});
       Object.defineProperty(ChangeDetectorJITGenerator.prototype.ifChangedGuard, "parameters", {get: function() {

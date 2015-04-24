@@ -14,7 +14,7 @@ System.register(["angular2/test_lib", "angular2/src/change_detection/coalesce", 
   function main() {
     function r(funcOrValue, args, contextIndex, selfIndex) {
       var lastInBinding = arguments[4] !== (void 0) ? arguments[4] : false;
-      return new ProtoRecord(99, "name", funcOrValue, args, null, contextIndex, selfIndex, null, null, lastInBinding, false);
+      return new ProtoRecord(99, "name", funcOrValue, args, null, contextIndex, null, selfIndex, null, null, lastInBinding, false);
     }
     describe("change detection - coalesce", (function() {
       it("should work with an empty list", (function() {
@@ -34,7 +34,7 @@ System.register(["angular2/test_lib", "angular2/src/change_detection/coalesce", 
       }));
       it("should replace duplicate terminal records with" + " self records", (function() {
         var rs = coalesce([r("user", [], 0, 1, true), r("user", [], 0, 2, true)]);
-        expect(rs[1]).toEqual(new ProtoRecord(RECORD_TYPE_SELF, "self", null, [], null, 1, 2, null, null, true, false));
+        expect(rs[1]).toEqual(new ProtoRecord(RECORD_TYPE_SELF, "self", null, [], null, 1, null, 2, null, null, true, false));
       }));
     }));
   }

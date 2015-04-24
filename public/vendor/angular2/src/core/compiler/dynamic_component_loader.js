@@ -53,11 +53,12 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "./compiler", "./dire
     }],
     execute: function() {
       ComponentRef = $__export("ComponentRef", (function() {
-        var ComponentRef = function ComponentRef(location, instance, componentView) {
-          assert.argumentTypes(location, ElementRef, instance, assert.type.any, componentView, AppView);
+        var ComponentRef = function ComponentRef(location, instance, componentView, dispose) {
+          assert.argumentTypes(location, ElementRef, instance, assert.type.any, componentView, AppView, dispose, Function);
           this.location = location;
           this.instance = instance;
           this.componentView = componentView;
+          this._dispose = dispose;
         };
         return ($traceurRuntime.createClass)(ComponentRef, {
           get injector() {
@@ -65,11 +66,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "./compiler", "./dire
           },
           get hostView() {
             return this.location.hostView;
+          },
+          dispose: function() {
+            this._dispose();
           }
         }, {});
       }()));
       Object.defineProperty(ComponentRef, "parameters", {get: function() {
-          return [[ElementRef], [assert.type.any], [AppView]];
+          return [[ElementRef], [assert.type.any], [AppView], [Function]];
         }});
       DynamicComponentLoader = $__export("DynamicComponentLoader", (function() {
         var DynamicComponentLoader = function DynamicComponentLoader(compiler, directiveMetadataReader, viewFactory, viewHydrator) {
@@ -89,22 +93,43 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "./compiler", "./dire
             var componentBinding = DirectiveBinding.createFromType(type, annotation);
             return assert.returnType((this._compiler.compile(type).then((function(componentProtoView) {
               var componentView = $__0._viewFactory.getView(componentProtoView);
-              var hostView = location.hostView;
-              $__0._viewHydrator.hydrateDynamicComponentView(hostView, location.boundElementIndex, componentView, componentBinding, injector);
-              return new ComponentRef(location, location.elementInjector.getDynamicallyLoadedComponent(), componentView);
+              $__0._viewHydrator.hydrateDynamicComponentView(location, componentView, componentBinding, injector);
+              var dispose = (function() {
+                throw new BaseException("Not implemented");
+              });
+              return new ComponentRef(location, location.elementInjector.getDynamicallyLoadedComponent(), componentView, dispose);
             }))), assert.genericType(Promise, ComponentRef));
           },
-          loadIntoNewLocation: function(elementOrSelector, type, location) {
+          loadIntoNewLocation: function(type, parentComponentLocation, elementOrSelector) {
             var injector = arguments[3] !== (void 0) ? arguments[3] : null;
             var $__0 = this;
-            assert.argumentTypes(elementOrSelector, assert.type.any, type, Type, location, ElementRef, injector, Injector);
+            assert.argumentTypes(type, Type, parentComponentLocation, ElementRef, elementOrSelector, assert.type.any, injector, Injector);
             this._assertTypeIsComponent(type);
             return assert.returnType((this._compiler.compileInHost(type).then((function(hostProtoView) {
               var hostView = $__0._viewFactory.getView(hostProtoView);
-              $__0._viewHydrator.hydrateInPlaceHostView(null, elementOrSelector, hostView, injector);
-              var newLocation = new ElementRef(hostView.elementInjectors[0]);
+              $__0._viewHydrator.hydrateInPlaceHostView(parentComponentLocation, elementOrSelector, hostView, injector);
+              var newLocation = hostView.elementInjectors[0].getElementRef();
               var component = hostView.elementInjectors[0].getComponent();
-              return new ComponentRef(newLocation, component, hostView.componentChildViews[0]);
+              var dispose = (function() {
+                $__0._viewHydrator.dehydrateInPlaceHostView(parentComponentLocation, hostView);
+                $__0._viewFactory.returnView(hostView);
+              });
+              return new ComponentRef(newLocation, component, hostView.componentChildViews[0], dispose);
+            }))), assert.genericType(Promise, ComponentRef));
+          },
+          loadNextToExistingLocation: function(type, location) {
+            var injector = arguments[2] !== (void 0) ? arguments[2] : null;
+            assert.argumentTypes(type, Type, location, ElementRef, injector, Injector);
+            this._assertTypeIsComponent(type);
+            return assert.returnType((this._compiler.compileInHost(type).then((function(hostProtoView) {
+              var hostView = location.viewContainer.create(-1, hostProtoView, injector);
+              var newLocation = hostView.elementInjectors[0].getElementRef();
+              var component = hostView.elementInjectors[0].getComponent();
+              var dispose = (function() {
+                var index = location.viewContainer.indexOf(hostView);
+                location.viewContainer.remove(index);
+              });
+              return new ComponentRef(newLocation, component, hostView.componentChildViews[0], dispose);
             }))), assert.genericType(Promise, ComponentRef));
           },
           _assertTypeIsComponent: function(type) {
@@ -126,7 +151,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "./compiler", "./dire
           return [[Type], [ElementRef], [Injector]];
         }});
       Object.defineProperty(DynamicComponentLoader.prototype.loadIntoNewLocation, "parameters", {get: function() {
-          return [[assert.type.any], [Type], [ElementRef], [Injector]];
+          return [[Type], [ElementRef], [assert.type.any], [Injector]];
+        }});
+      Object.defineProperty(DynamicComponentLoader.prototype.loadNextToExistingLocation, "parameters", {get: function() {
+          return [[Type], [ElementRef], [Injector]];
         }});
       Object.defineProperty(DynamicComponentLoader.prototype._assertTypeIsComponent, "parameters", {get: function() {
           return [[Type]];

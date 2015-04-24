@@ -33,13 +33,12 @@ System.register(["angular2/test_lib", "angular2/src/dom/dom_adapter", "angular2/
       }));
       it('should attach the view nodes as child of the host element', (function() {
         var host = el('<div><span>original content</span></div>');
+        var originalChild = DOM.childNodes(host)[0];
         var nodes = el('<div>view</div>');
         var view = new RenderView(null, [nodes], [], [], []);
         strategy.attachTemplate(host, view);
-        var firstChild = DOM.firstChild(host);
-        expect(DOM.tagName(firstChild).toLowerCase()).toEqual('div');
-        expect(firstChild).toHaveText('view');
-        expect(host).toHaveText('view');
+        expect(DOM.childNodes(host)[0]).toBe(originalChild);
+        expect(DOM.childNodes(host)[1]).toBe(nodes);
       }));
       it('should rewrite style urls', (function() {
         var styleElement = el('<style>.foo {background-image: url("img.jpg");}</style>');

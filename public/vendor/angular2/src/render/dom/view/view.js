@@ -58,7 +58,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/dom/dom_adapter", "ang
           this.componentChildViews = ListWrapper.createFixedSize(boundElements.length);
           this.hostLightDom = null;
           this.hydrated = false;
-          this.eventHandlerRemovers = null;
+          this.eventHandlerRemovers = [];
+          this.imperativeHostViews = [];
         };
         return ($traceurRuntime.createClass)(RenderView, {
           getDirectParentLightDom: function(boundElementIndex) {
@@ -96,11 +97,16 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/dom/dom_adapter", "ang
             this._eventDispatcher = dispatcher;
           },
           dispatchEvent: function(elementIndex, eventName, event) {
+            var allowDefaultBehavior = true;
             if (isPresent(this._eventDispatcher)) {
               var evalLocals = MapWrapper.create();
               MapWrapper.set(evalLocals, '$event', event);
-              this._eventDispatcher.dispatchEvent(elementIndex, eventName, evalLocals);
+              allowDefaultBehavior = this._eventDispatcher.dispatchEvent(elementIndex, eventName, evalLocals);
+              if (!allowDefaultBehavior) {
+                event.preventDefault();
+              }
             }
+            return assert.returnType((allowDefaultBehavior), assert.type.boolean);
           }
         }, {});
       }()));

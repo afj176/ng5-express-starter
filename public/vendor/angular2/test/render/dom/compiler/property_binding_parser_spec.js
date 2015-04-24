@@ -54,6 +54,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/r
         var results = process(el('<div a="{{b}}"></div>'));
         expect(MapWrapper.get(results[0].propertyBindings, 'a').source).toEqual('{{b}}');
       }));
+      it('should store property setters as camel case', (function() {
+        var element = el('<div bind-some-prop="1">');
+        var results = process(element);
+        expect(MapWrapper.get(results[0].propertyBindings, 'someProp')).toBeTruthy();
+      }));
       it('should detect var- syntax', (function() {
         var results = process(el('<template var-a="b"></template>'));
         expect(MapWrapper.get(results[0].variableBindings, 'b')).toEqual('a');
@@ -129,18 +134,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/r
         var results = createPipeline().process(el('<div var-a="b" #c="d"></div>'));
         expect(MapWrapper.get(results[0].attrs(), 'a')).toEqual('b');
         expect(MapWrapper.get(results[0].attrs(), 'c')).toEqual('d');
-      }));
-      it('should store working property setters', (function() {
-        var element = el('<input bind-value="1">');
-        var results = process(element);
-        var setter = MapWrapper.get(results[0].propertySetters, 'value');
-        setter(element, 'abc');
-        expect(element.value).toEqual('abc');
-      }));
-      it('should store property setters as camel case', (function() {
-        var element = el('<div bind-some-prop="1">');
-        var results = process(element);
-        expect(MapWrapper.get(results[0].propertySetters, 'someProp')).toBeTruthy();
       }));
     }));
   }

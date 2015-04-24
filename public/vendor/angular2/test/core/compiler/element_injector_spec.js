@@ -27,7 +27,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       ElementRef,
       Parent,
       Ancestor,
-      PropertySetter,
       Attribute,
       Query,
       onDestroy,
@@ -60,8 +59,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       NeedDirectiveFromAncestor,
       NeedsService,
       HasEventEmitter,
-      NeedsPropertySetter,
-      NeedsPropertySetterNoType,
       NeedsAttribute,
       NeedsAttributeNoType,
       NeedsQuery,
@@ -467,40 +464,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           expect(inj.getDynamicallyLoadedComponent().service).toEqual("Service");
         }));
       }));
-      describe('property setter', (function() {
-        var renderer,
-            view;
-        beforeEach((function() {
-          renderer = new FakeRenderer();
-          var protoView = new AppProtoView(null, null);
-          view = new AppView(renderer, null, null, protoView, MapWrapper.create());
-          view.render = new ViewRef();
-        }));
-        it('should be injectable and callable', (function() {
-          var preBuildObject = new PreBuiltObjects(view, null, null);
-          var inj = injector([NeedsPropertySetter], null, null, preBuildObject);
-          var component = inj.get(NeedsPropertySetter);
-          component.setProp('foobar');
-          component.setRole('button');
-          component.setClass(true);
-          component.classWithDashSetter(true);
-          component.setStyle('40px');
-          component.setStyleWithUnit(50);
-          expect(renderer.log[0]).toEqual([view.render, 0, 'title', 'foobar']);
-          expect(renderer.log[1]).toEqual([view.render, 0, 'attr.role', 'button']);
-          expect(renderer.log[2]).toEqual([view.render, 0, 'class.active', true]);
-          expect(renderer.log[3]).toEqual([view.render, 0, 'class.foo-bar', true]);
-          expect(renderer.log[4]).toEqual([view.render, 0, 'style.width', '40px']);
-          expect(renderer.log[5]).toEqual([view.render, 0, 'style.height.px', 50]);
-        }));
-        it('should be injectable and callable without specifying param type annotation', (function() {
-          var preBuildObject = new PreBuiltObjects(view, null, null);
-          var inj = injector([NeedsPropertySetterNoType], null, null, preBuildObject);
-          var component = inj.get(NeedsPropertySetterNoType);
-          component.setProp('foobar');
-          expect(renderer.log[0]).toEqual([view.render, 0, 'title', 'foobar']);
-        }));
-      }));
       describe('static attributes', (function() {
         it('should be injectable', (function() {
           var attributes = MapWrapper.create();
@@ -662,7 +625,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       Parent = $__m.Parent;
       Ancestor = $__m.Ancestor;
     }, function($__m) {
-      PropertySetter = $__m.PropertySetter;
       Attribute = $__m.Attribute;
       Query = $__m.Query;
     }, function($__m) {
@@ -797,48 +759,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
         };
         return ($traceurRuntime.createClass)(HasEventEmitter, {}, {});
       }());
-      NeedsPropertySetter = (function() {
-        var NeedsPropertySetter = function NeedsPropertySetter(propSetter, roleSetter, classSetter, classWithDashSetter, styleSetter, unitSetter) {
-          assert.argumentTypes(propSetter, Function, roleSetter, Function, classSetter, Function, classWithDashSetter, Function, styleSetter, Function, unitSetter, Function);
-          this.propSetter = propSetter;
-          this.roleSetter = roleSetter;
-          this.classSetter = classSetter;
-          this.classWithDashSetter = classWithDashSetter;
-          this.styleSetter = styleSetter;
-          this.unitSetter = unitSetter;
-        };
-        return ($traceurRuntime.createClass)(NeedsPropertySetter, {
-          setProp: function(value) {
-            this.propSetter(value);
-          },
-          setRole: function(value) {
-            this.roleSetter(value);
-          },
-          setClass: function(value) {
-            this.classSetter(value);
-          },
-          setStyle: function(value) {
-            this.styleSetter(value);
-          },
-          setStyleWithUnit: function(value) {
-            this.unitSetter(value);
-          }
-        }, {});
-      }());
-      Object.defineProperty(NeedsPropertySetter, "parameters", {get: function() {
-          return [[Function, new PropertySetter('title')], [Function, new PropertySetter('attr.role')], [Function, new PropertySetter('class.active')], [Function, new PropertySetter('class.foo-bar')], [Function, new PropertySetter('style.width')], [Function, new PropertySetter('style.height.px')]];
-        }});
-      NeedsPropertySetterNoType = (function() {
-        var NeedsPropertySetterNoType = function NeedsPropertySetterNoType(propSetter) {
-          this.propSetter = propSetter;
-        };
-        return ($traceurRuntime.createClass)(NeedsPropertySetterNoType, {setProp: function(value) {
-            this.propSetter(value);
-          }}, {});
-      }());
-      Object.defineProperty(NeedsPropertySetterNoType, "parameters", {get: function() {
-          return [[new PropertySetter('title')]];
-        }});
       NeedsAttribute = (function() {
         var NeedsAttribute = function NeedsAttribute(typeAttribute, titleAttribute, fooAttribute) {
           assert.argumentTypes(typeAttribute, assert.type.string, titleAttribute, assert.type.string, fooAttribute, assert.type.string);

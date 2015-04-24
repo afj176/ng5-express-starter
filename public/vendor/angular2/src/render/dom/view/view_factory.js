@@ -75,12 +75,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           getView: function(protoView) {
             assert.argumentTypes(protoView, pvModule.RenderProtoView);
             var pooledViews = MapWrapper.get(this._pooledViewsPerProtoView, protoView);
-            if (isPresent(pooledViews)) {
-              var result = ListWrapper.removeLast(pooledViews);
-              if (pooledViews.length === 0) {
-                MapWrapper.delete(this._pooledViewsPerProtoView, protoView);
-              }
-              return assert.returnType((result), viewModule.RenderView);
+            if (isPresent(pooledViews) && pooledViews.length > 0) {
+              return assert.returnType((ListWrapper.removeLast(pooledViews)), viewModule.RenderView);
             }
             return assert.returnType((this._createView(protoView, null)), viewModule.RenderView);
           },
@@ -101,6 +97,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           },
           _createView: function(protoView, inplaceElement) {
             assert.argumentTypes(protoView, pvModule.RenderProtoView, inplaceElement, assert.type.any);
+            if (isPresent(protoView.imperativeRendererId)) {
+              return assert.returnType((new viewModule.RenderView(protoView, [], [], [], [])), viewModule.RenderView);
+            }
             var rootElementClone = isPresent(inplaceElement) ? inplaceElement : DOM.importIntoDoc(protoView.element);
             var elementsWithBindingsDynamic;
             if (protoView.isTemplateElement) {
@@ -153,7 +152,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
               var element = boundElements[binderIdx];
               if (binder.hasStaticComponent()) {
                 var childView = this._createView(binder.nestedProtoView, null);
-                this.setComponentView(view, binderIdx, childView);
+                ViewFactory.setComponentView(this._shadowDomStrategy, view, binderIdx, childView);
               }
               if (isPresent(binder.eventLocals) && isPresent(binder.localEvents)) {
                 for (var i = 0; i < binder.localEvents.length; i++) {
@@ -167,16 +166,15 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             this._eventManager.addEventListener(element, eventName, (function(event) {
               view.dispatchEvent(elementIndex, eventName, event);
             }));
-          },
-          setComponentView: function(hostView, elementIndex, componentView) {
-            assert.argumentTypes(hostView, viewModule.RenderView, elementIndex, assert.type.number, componentView, viewModule.RenderView);
+          }
+        }, {setComponentView: function(shadowDomStrategy, hostView, elementIndex, componentView) {
+            assert.argumentTypes(shadowDomStrategy, ShadowDomStrategy, hostView, viewModule.RenderView, elementIndex, assert.type.number, componentView, viewModule.RenderView);
             var element = hostView.boundElements[elementIndex];
-            var lightDom = this._shadowDomStrategy.constructLightDom(hostView, componentView, element);
-            this._shadowDomStrategy.attachTemplate(element, componentView);
+            var lightDom = shadowDomStrategy.constructLightDom(hostView, componentView, element);
+            shadowDomStrategy.attachTemplate(element, componentView);
             hostView.lightDoms[elementIndex] = lightDom;
             hostView.componentChildViews[elementIndex] = componentView;
-          }
-        }, {});
+          }});
       }()));
       Object.defineProperty(ViewFactory, "annotations", {get: function() {
           return [new Injectable()];
@@ -196,8 +194,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       Object.defineProperty(ViewFactory.prototype._createView, "parameters", {get: function() {
           return [[pvModule.RenderProtoView], []];
         }});
-      Object.defineProperty(ViewFactory.prototype.setComponentView, "parameters", {get: function() {
-          return [[viewModule.RenderView], [assert.type.number], [viewModule.RenderView]];
+      Object.defineProperty(ViewFactory.setComponentView, "parameters", {get: function() {
+          return [[ShadowDomStrategy], [viewModule.RenderView], [assert.type.number], [viewModule.RenderView]];
         }});
     }
   };

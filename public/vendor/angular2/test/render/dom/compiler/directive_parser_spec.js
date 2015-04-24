@@ -32,6 +32,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       someDecorator,
       someDecoratorIgnoringChildren,
       someDecoratorWithProps,
+      someDecoratorWithHostProperties,
       someDecoratorWithEvents,
       someDecoratorWithGlobalEvents;
   function main() {
@@ -39,7 +40,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       var parser,
           annotatedDirectives;
       beforeEach((function() {
-        annotatedDirectives = [someComponent, someComponent2, someComponent3, someViewport, someViewport2, someDecorator, someDecoratorIgnoringChildren, someDecoratorWithProps, someDecoratorWithEvents, someDecoratorWithGlobalEvents];
+        annotatedDirectives = [someComponent, someComponent2, someComponent3, someViewport, someViewport2, someDecorator, someDecoratorIgnoringChildren, someDecoratorWithProps, someDecoratorWithHostProperties, someDecoratorWithEvents, someDecoratorWithGlobalEvents];
         parser = new Parser(new Lexer());
       }));
       function createPipeline() {
@@ -99,12 +100,12 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
         var simpleProp = MapWrapper.get(directiveBinding.propertyBindings, 'dirProp');
         expect(simpleProp.source).toEqual('someValue');
       }));
-      it('should store working property setters', (function() {
-        var element = el('<input some-decor-props>');
+      it('should bind host directive properties', (function() {
+        var element = el('<input some-decor-with-host-props>');
         var results = process(element);
-        var setter = MapWrapper.get(results[0].propertySetters, 'value');
-        setter(element, 'abc');
-        expect(element.value).toEqual('abc');
+        var directiveBinding = results[0].directives[0];
+        var ast = MapWrapper.get(directiveBinding.hostPropertyBindings, 'hostProperty');
+        expect(ast.source).toEqual('dirProp');
       }));
       it('should read attribute values', (function() {
         var element = el('<input some-decor-props some-attr="someValue">');
@@ -244,8 +245,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           'dirProp': 'elProp',
           'doubleProp': 'elProp | double'
         }),
-        setters: ['value'],
         readAttributes: ['some-attr']
+      });
+      someDecoratorWithHostProperties = new DirectiveMetadata({
+        selector: '[some-decor-with-host-props]',
+        hostProperties: MapWrapper.createFromStringMap({'dirProp': 'hostProperty'})
       });
       someDecoratorWithEvents = new DirectiveMetadata({
         selector: '[some-decor-events]',

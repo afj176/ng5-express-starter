@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/collection", "./element_injector", "angular2/src/facade/lang", "./view_container", "./view", "angular2/change_detection", "angular2/src/render/api"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/collection", "./element_injector", "angular2/src/facade/lang", "./view_container", "./view", "angular2/change_detection", "angular2/src/render/api", "angular2/src/core/compiler/view_factory"], function($__export) {
   "use strict";
   var assert,
       Injectable,
@@ -19,6 +19,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       BindingPropagationConfig,
       Locals,
       renderApi,
+      ViewFactory,
       AppViewHydrator;
   return {
     setters: [function($__m) {
@@ -49,16 +50,21 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       Locals = $__m.Locals;
     }, function($__m) {
       renderApi = $__m;
+    }, function($__m) {
+      ViewFactory = $__m.ViewFactory;
     }],
     execute: function() {
       AppViewHydrator = $__export("AppViewHydrator", (function() {
-        var AppViewHydrator = function AppViewHydrator(renderer) {
-          assert.argumentTypes(renderer, renderApi.Renderer);
+        var AppViewHydrator = function AppViewHydrator(renderer, viewFactory) {
+          assert.argumentTypes(renderer, renderApi.Renderer, viewFactory, ViewFactory);
           this._renderer = renderer;
+          this._viewFactory = viewFactory;
         };
         return ($traceurRuntime.createClass)(AppViewHydrator, {
-          hydrateDynamicComponentView: function(hostView, boundElementIndex, componentView, componentDirective, injector) {
-            assert.argumentTypes(hostView, viewModule.AppView, boundElementIndex, assert.type.number, componentView, viewModule.AppView, componentDirective, eli.DirectiveBinding, injector, Injector);
+          hydrateDynamicComponentView: function(location, componentView, componentDirective, injector) {
+            assert.argumentTypes(location, eli.ElementRef, componentView, viewModule.AppView, componentDirective, eli.DirectiveBinding, injector, Injector);
+            var hostView = location.hostView;
+            var boundElementIndex = location.boundElementIndex;
             var binder = hostView.proto.elementBinders[boundElementIndex];
             if (!binder.hasDynamicComponent()) {
               throw new BaseException(("There is no dynamic component directive at element " + boundElementIndex));
@@ -84,22 +90,31 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             assert.argumentTypes(parentView, viewModule.AppView, boundElementIndex, assert.type.number);
             throw new BaseException('Not yet implemented!');
           },
-          hydrateInPlaceHostView: function(parentView, hostElementSelector, hostView, injector) {
-            assert.argumentTypes(parentView, viewModule.AppView, hostElementSelector, assert.type.any, hostView, viewModule.AppView, injector, Injector);
+          hydrateInPlaceHostView: function(parentComponentLocation, hostElementSelector, hostView, injector) {
+            assert.argumentTypes(parentComponentLocation, eli.ElementRef, hostElementSelector, assert.type.any, hostView, viewModule.AppView, injector, Injector);
             var parentRenderViewRef = null;
-            if (isPresent(parentView)) {
-              throw new BaseException('Not yet supported');
+            if (isPresent(parentComponentLocation)) {
+              var parentView = parentComponentLocation.hostView.componentChildViews[parentComponentLocation.boundElementIndex];
+              parentRenderViewRef = parentView.render;
+              parentView.changeDetector.addChild(hostView.changeDetector);
+              ListWrapper.push(parentView.imperativeHostViews, hostView);
+              if (isBlank(injector)) {
+                injector = parentComponentLocation.injector;
+              }
             }
             var binder = hostView.proto.elementBinders[0];
             var shadowDomAppInjector = this._createShadowDomAppInjector(binder.componentDirective, injector);
             var renderViewRefs = this._renderer.createInPlaceHostView(parentRenderViewRef, hostElementSelector, hostView.proto.render);
             this._viewHydrateRecurse(hostView, renderViewRefs, 0, shadowDomAppInjector, null, new Object(), null);
           },
-          dehydrateInPlaceHostView: function(parentView, hostView) {
-            assert.argumentTypes(parentView, viewModule.AppView, hostView, viewModule.AppView);
+          dehydrateInPlaceHostView: function(parentComponentLocation, hostView) {
+            assert.argumentTypes(parentComponentLocation, eli.ElementRef, hostView, viewModule.AppView);
             var parentRenderViewRef = null;
-            if (isPresent(parentView)) {
-              throw new BaseException('Not yet supported');
+            if (isPresent(parentComponentLocation)) {
+              var parentView = parentComponentLocation.hostView.componentChildViews[parentComponentLocation.boundElementIndex];
+              parentRenderViewRef = parentView.render;
+              ListWrapper.remove(parentView.imperativeHostViews, hostView);
+              parentView.changeDetector.removeChild(hostView.changeDetector);
             }
             var render = hostView.render;
             this._viewDehydrateRecurse(hostView);
@@ -127,6 +142,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             assert.argumentTypes(view, viewModule.AppView, renderComponentViewRefs, assert.genericType(List, renderApi.ViewRef), renderComponentIndex, assert.type.number, appInjector, Injector, hostElementInjector, eli.ElementInjector, context, Object, locals, Locals);
             if (view.hydrated())
               throw new BaseException('The view is already hydrated.');
+            view.viewHydrator = this;
             view.render = renderComponentViewRefs[renderComponentIndex++];
             view.context = context;
             view.locals.parent = locals;
@@ -178,11 +194,19 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
                 this._viewDehydrateRecurse(componentView);
                 var binder = view.proto.elementBinders[i];
                 if (binder.hasDynamicComponent()) {
-                  view.componentChildViews[i] = null;
                   view.changeDetector.removeShadowDomChild(componentView.changeDetector);
+                  view.componentChildViews[i] = null;
+                  this._viewFactory.returnView(componentView);
                 }
               }
             }
+            for (var i = 0; i < view.imperativeHostViews.length; i++) {
+              var hostView = view.imperativeHostViews[i];
+              this._viewDehydrateRecurse(hostView);
+              view.changeDetector.removeChild(hostView.changeDetector);
+              this._viewFactory.returnView(hostView);
+            }
+            view.imperativeHostViews = [];
             for (var i = 0; i < view.elementInjectors.length; i++) {
               if (isPresent(view.elementInjectors[i])) {
                 view.elementInjectors[i].clearDirectives();
@@ -228,19 +252,19 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           return [new Injectable()];
         }});
       Object.defineProperty(AppViewHydrator, "parameters", {get: function() {
-          return [[renderApi.Renderer]];
+          return [[renderApi.Renderer], [ViewFactory]];
         }});
       Object.defineProperty(AppViewHydrator.prototype.hydrateDynamicComponentView, "parameters", {get: function() {
-          return [[viewModule.AppView], [assert.type.number], [viewModule.AppView], [eli.DirectiveBinding], [Injector]];
+          return [[eli.ElementRef], [viewModule.AppView], [eli.DirectiveBinding], [Injector]];
         }});
       Object.defineProperty(AppViewHydrator.prototype.dehydrateDynamicComponentView, "parameters", {get: function() {
           return [[viewModule.AppView], [assert.type.number]];
         }});
       Object.defineProperty(AppViewHydrator.prototype.hydrateInPlaceHostView, "parameters", {get: function() {
-          return [[viewModule.AppView], [], [viewModule.AppView], [Injector]];
+          return [[eli.ElementRef], [], [viewModule.AppView], [Injector]];
         }});
       Object.defineProperty(AppViewHydrator.prototype.dehydrateInPlaceHostView, "parameters", {get: function() {
-          return [[viewModule.AppView], [viewModule.AppView]];
+          return [[eli.ElementRef], [viewModule.AppView]];
         }});
       Object.defineProperty(AppViewHydrator.prototype.hydrateViewInViewContainer, "parameters", {get: function() {
           return [[vcModule.ViewContainer], [assert.type.number], [viewModule.AppView], [Injector]];

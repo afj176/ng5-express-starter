@@ -1,8 +1,9 @@
-System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "./binding_record"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "./binding_record", "./directive_record"], function($__export) {
   "use strict";
   var assert,
       List,
       BindingRecord,
+      DirectiveIndex,
       RECORD_TYPE_SELF,
       RECORD_TYPE_CONST,
       RECORD_TYPE_PRIMITIVE_OP,
@@ -22,6 +23,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", ".
       List = $__m.List;
     }, function($__m) {
       BindingRecord = $__m.BindingRecord;
+    }, function($__m) {
+      DirectiveIndex = $__m.DirectiveIndex;
     }],
     execute: function() {
       RECORD_TYPE_SELF = $__export("RECORD_TYPE_SELF", 0);
@@ -36,14 +39,15 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", ".
       RECORD_TYPE_BINDING_PIPE = $__export("RECORD_TYPE_BINDING_PIPE", 9);
       RECORD_TYPE_INTERPOLATE = $__export("RECORD_TYPE_INTERPOLATE", 10);
       ProtoRecord = $__export("ProtoRecord", (function() {
-        var ProtoRecord = function ProtoRecord(mode, name, funcOrValue, args, fixedArgs, contextIndex, selfIndex, bindingRecord, expressionAsString, lastInBinding, lastInDirective) {
-          assert.argumentTypes(mode, assert.type.number, name, assert.type.string, funcOrValue, assert.type.any, args, List, fixedArgs, List, contextIndex, assert.type.number, selfIndex, assert.type.number, bindingRecord, BindingRecord, expressionAsString, assert.type.string, lastInBinding, assert.type.boolean, lastInDirective, assert.type.boolean);
+        var ProtoRecord = function ProtoRecord(mode, name, funcOrValue, args, fixedArgs, contextIndex, directiveIndex, selfIndex, bindingRecord, expressionAsString, lastInBinding, lastInDirective) {
+          assert.argumentTypes(mode, assert.type.number, name, assert.type.string, funcOrValue, assert.type.any, args, List, fixedArgs, List, contextIndex, assert.type.number, directiveIndex, DirectiveIndex, selfIndex, assert.type.number, bindingRecord, BindingRecord, expressionAsString, assert.type.string, lastInBinding, assert.type.boolean, lastInDirective, assert.type.boolean);
           this.mode = mode;
           this.name = name;
           this.funcOrValue = funcOrValue;
           this.args = args;
           this.fixedArgs = fixedArgs;
           this.contextIndex = contextIndex;
+          this.directiveIndex = directiveIndex;
           this.selfIndex = selfIndex;
           this.bindingRecord = bindingRecord;
           this.lastInBinding = lastInBinding;
@@ -55,7 +59,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", ".
           }}, {});
       }()));
       Object.defineProperty(ProtoRecord, "parameters", {get: function() {
-          return [[assert.type.number], [assert.type.string], [], [List], [List], [assert.type.number], [assert.type.number], [BindingRecord], [assert.type.string], [assert.type.boolean], [assert.type.boolean]];
+          return [[assert.type.number], [assert.type.string], [], [List], [List], [assert.type.number], [DirectiveIndex], [assert.type.number], [BindingRecord], [assert.type.string], [assert.type.boolean], [assert.type.boolean]];
         }});
     }
   };

@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/collection", "./element_injector", "angular2/src/facade/lang", "angular2/src/core/compiler/ng_element", "./view", "angular2/src/render/api", "./view_hydrator"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/collection", "./element_injector", "angular2/src/facade/lang", "angular2/src/core/compiler/ng_element", "./view", "angular2/src/render/api"], function($__export) {
   "use strict";
   var assert,
       Injectable,
@@ -16,7 +16,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       NgElement,
       viewModule,
       Renderer,
-      AppViewHydrator,
       VIEW_POOL_CAPACITY,
       ViewFactory;
   return {
@@ -44,29 +43,22 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       viewModule = $__m;
     }, function($__m) {
       Renderer = $__m.Renderer;
-    }, function($__m) {
-      AppViewHydrator = $__m.AppViewHydrator;
     }],
     execute: function() {
       VIEW_POOL_CAPACITY = $__export("VIEW_POOL_CAPACITY", 'ViewFactory.viewPoolCapacity');
       ViewFactory = $__export("ViewFactory", (function() {
-        var ViewFactory = function ViewFactory(poolCapacityPerProtoView, renderer, viewHydrator) {
-          assert.argumentTypes(poolCapacityPerProtoView, assert.type.any, renderer, Renderer, viewHydrator, AppViewHydrator);
+        var ViewFactory = function ViewFactory(poolCapacityPerProtoView, renderer) {
+          assert.argumentTypes(poolCapacityPerProtoView, assert.type.any, renderer, Renderer);
           this._poolCapacityPerProtoView = poolCapacityPerProtoView;
           this._pooledViewsPerProtoView = MapWrapper.create();
           this._renderer = renderer;
-          this._viewHydrator = viewHydrator;
         };
         return ($traceurRuntime.createClass)(ViewFactory, {
           getView: function(protoView) {
             assert.argumentTypes(protoView, viewModule.AppProtoView);
             var pooledViews = MapWrapper.get(this._pooledViewsPerProtoView, protoView);
-            if (isPresent(pooledViews)) {
-              var result = ListWrapper.removeLast(pooledViews);
-              if (pooledViews.length === 0) {
-                MapWrapper.delete(this._pooledViewsPerProtoView, protoView);
-              }
-              return assert.returnType((result), viewModule.AppView);
+            if (isPresent(pooledViews) && pooledViews.length > 0) {
+              return assert.returnType((ListWrapper.removeLast(pooledViews)), viewModule.AppView);
             }
             return assert.returnType((this._createView(protoView)), viewModule.AppView);
           },
@@ -87,7 +79,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           },
           _createView: function(protoView) {
             assert.argumentTypes(protoView, viewModule.AppProtoView);
-            var view = new viewModule.AppView(this._renderer, this, this._viewHydrator, protoView, protoView.protoLocals);
+            var view = new viewModule.AppView(this._renderer, this, protoView, protoView.protoLocals);
             var changeDetector = protoView.protoChangeDetector.instantiate(view, protoView.bindings, protoView.getVariableBindings(), protoView.getdirectiveRecords());
             var binders = protoView.elementBinders;
             var elementInjectors = ListWrapper.createFixedSize(binders.length);
@@ -128,7 +120,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           return [new Injectable()];
         }});
       Object.defineProperty(ViewFactory, "parameters", {get: function() {
-          return [[new Inject(VIEW_POOL_CAPACITY)], [Renderer], [AppViewHydrator]];
+          return [[new Inject(VIEW_POOL_CAPACITY)], [Renderer]];
         }});
       Object.defineProperty(ViewFactory.prototype.getView, "parameters", {get: function() {
           return [[viewModule.AppProtoView]];

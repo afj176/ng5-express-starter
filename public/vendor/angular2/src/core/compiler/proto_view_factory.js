@@ -9,6 +9,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       isBlank,
       reflector,
       ChangeDetection,
+      DirectiveIndex,
       Component,
       Viewport,
       DynamicComponent,
@@ -35,6 +36,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       reflector = $__m.reflector;
     }, function($__m) {
       ChangeDetection = $__m.ChangeDetection;
+      DirectiveIndex = $__m.DirectiveIndex;
     }, function($__m) {
       Component = $__m.Component;
       Viewport = $__m.Viewport;
@@ -70,7 +72,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
               var parentPeiWithDistance = this._findParentProtoElementInjectorWithDistance(i, protoView.elementBinders, renderProtoView.elementBinders);
               var protoElementInjector = this._createProtoElementInjector(i, parentPeiWithDistance, sortedDirectives, renderElementBinder);
               this._createElementBinder(protoView, renderElementBinder, protoElementInjector, sortedDirectives);
-              this._createDirectiveBinders(protoView, sortedDirectives);
+              this._createDirectiveBinders(protoView, i, sortedDirectives);
             }
             MapWrapper.forEach(renderProtoView.variableBindings, (function(mappedName, varName) {
               protoView.bindVariable(varName, mappedName);
@@ -127,14 +129,18 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             }));
             return elBinder;
           },
-          _createDirectiveBinders: function(protoView, sortedDirectives) {
+          _createDirectiveBinders: function(protoView, boundElementIndex, sortedDirectives) {
             for (var i = 0; i < sortedDirectives.renderDirectives.length; i++) {
-              var renderDirectiveMetadata = sortedDirectives.renderDirectives[i];
-              MapWrapper.forEach(renderDirectiveMetadata.propertyBindings, (function(astWithSource, propertyName) {
+              var directiveBinder = sortedDirectives.renderDirectives[i];
+              MapWrapper.forEach(directiveBinder.propertyBindings, (function(astWithSource, propertyName) {
                 var setter = reflector.setter(propertyName);
                 protoView.bindDirectiveProperty(i, astWithSource, propertyName, setter);
               }));
-              protoView.bindEvent(renderDirectiveMetadata.eventBindings, i);
+              MapWrapper.forEach(directiveBinder.hostPropertyBindings, (function(astWithSource, propertyName) {
+                var directiveIndex = new DirectiveIndex(boundElementIndex, i);
+                protoView.bindHostElementProperty(astWithSource, propertyName, directiveIndex);
+              }));
+              protoView.bindEvent(directiveBinder.eventBindings, i);
             }
           }
         }, {});
@@ -155,17 +161,17 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
           this.directives = [];
           this.viewportDirective = null;
           this.componentDirective = null;
-          ListWrapper.forEach(renderDirectives, (function(renderDirectiveMetadata) {
-            var directiveBinding = allDirectives[renderDirectiveMetadata.directiveIndex];
+          ListWrapper.forEach(renderDirectives, (function(renderDirectiveBinder) {
+            var directiveBinding = allDirectives[renderDirectiveBinder.directiveIndex];
             if ((directiveBinding.annotation instanceof Component) || (directiveBinding.annotation instanceof DynamicComponent)) {
               $__0.componentDirective = directiveBinding;
-              ListWrapper.insert($__0.renderDirectives, 0, renderDirectiveMetadata);
+              ListWrapper.insert($__0.renderDirectives, 0, renderDirectiveBinder);
               ListWrapper.insert($__0.directives, 0, directiveBinding);
             } else {
               if (directiveBinding.annotation instanceof Viewport) {
                 $__0.viewportDirective = directiveBinding;
               }
-              ListWrapper.push($__0.renderDirectives, renderDirectiveMetadata);
+              ListWrapper.push($__0.renderDirectives, renderDirectiveBinder);
               ListWrapper.push($__0.directives, directiveBinding);
             }
           }));

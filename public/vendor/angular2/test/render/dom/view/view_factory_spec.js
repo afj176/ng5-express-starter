@@ -64,9 +64,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
         eventManager = new SpyEventManager();
         shadowDomStrategy = new SpyShadowDomStrategy();
       }));
-      it('should create views', (function() {
+      it('should create views without cache', (function() {
         var pv = createProtoView();
-        var vf = createViewFactory({capacity: 1});
+        var vf = createViewFactory({capacity: 0});
         expect(vf.getView(pv) instanceof RenderView).toBe(true);
       }));
       describe('caching', (function() {

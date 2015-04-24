@@ -2,7 +2,6 @@ System.register(["angular2/src/facade/lang", "angular2/di"], function($__export)
   "use strict";
   var CONST,
       DependencyAnnotation,
-      PropertySetter,
       Attribute,
       Query;
   return {
@@ -12,18 +11,6 @@ System.register(["angular2/src/facade/lang", "angular2/di"], function($__export)
       DependencyAnnotation = $__m.DependencyAnnotation;
     }],
     execute: function() {
-      PropertySetter = $__export("PropertySetter", (function($__super) {
-        var PropertySetter = function PropertySetter(propName) {
-          $traceurRuntime.superConstructor(PropertySetter).call(this);
-          this.propName = propName;
-        };
-        return ($traceurRuntime.createClass)(PropertySetter, {get token() {
-            return Function;
-          }}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(PropertySetter, "annotations", {get: function() {
-          return [new CONST()];
-        }});
       Attribute = $__export("Attribute", (function($__super) {
         var Attribute = function Attribute(attributeName) {
           $traceurRuntime.superConstructor(Attribute).call(this);

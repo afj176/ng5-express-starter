@@ -1,8 +1,9 @@
-System.register(["rtts_assert/rtts_assert", "angular2/src/core/testability/testability"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/src/core/testability/testability", "angular2/src/facade/lang"], function($__export) {
   "use strict";
   var assert,
       TestabilityRegistry,
       Testability,
+      global,
       PublicTestability,
       GetTestability;
   return {
@@ -11,6 +12,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/core/testability/testa
     }, function($__m) {
       TestabilityRegistry = $__m.TestabilityRegistry;
       Testability = $__m.Testability;
+    }, function($__m) {
+      global = $__m.global;
     }],
     execute: function() {
       PublicTestability = (function() {
@@ -44,17 +47,13 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/core/testability/testa
         };
         return ($traceurRuntime.createClass)(GetTestability, {}, {addToWindow: function(registry) {
             assert.argumentTypes(registry, TestabilityRegistry);
-            if (!window.angular2) {
-              window.angular2 = {};
-            }
-            window.angular2.getTestability = function(elem) {
+            global.getAngularTestability = function(elem) {
               var testability = registry.findTestabilityInTree(elem);
               if (testability == null) {
                 throw new Error('Could not find testability for element.');
               }
               return assert.returnType((new PublicTestability(testability)), PublicTestability);
             };
-            window.angular2.resumeBootstrap = function() {};
           }});
       }()));
       Object.defineProperty(GetTestability.addToWindow, "parameters", {get: function() {

@@ -12,11 +12,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       inject,
       IS_DARTIUM,
       it,
+      SpyObject,
+      proxy,
       List,
       ListWrapper,
       Map,
       MapWrapper,
       StringMapWrapper,
+      IMPLEMENTS,
       Type,
       isBlank,
       stringify,
@@ -32,7 +35,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       DynamicComponent,
       Viewport,
       Decorator,
-      PropertySetter,
       Attribute,
       View,
       DirectiveBinding,
@@ -42,6 +44,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       ProtoViewFactory,
       UrlResolver,
       renderApi,
+      Renderer,
       MainComponent,
       NestedComponent,
       RecursiveComponent,
@@ -50,10 +53,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       SomeDecoratorDirective,
       IgnoreChildrenDecoratorDirective,
       DirectiveWithEvents,
+      DirectiveWithProperties,
       DirectiveWithBind,
-      DirectiveWithPropertySetters,
       DirectiveWithAttributes,
-      FakeRenderer,
+      SpyRenderer,
       FakeUrlResolver,
       FakeTemplateResolver,
       FakeProtoViewFactory;
@@ -63,16 +66,22 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           tplResolver,
           renderer,
           protoViewFactory,
-          cmpUrlMapper;
+          cmpUrlMapper,
+          renderCompileRequests;
       beforeEach((function() {
         reader = new DirectiveMetadataReader();
         tplResolver = new FakeTemplateResolver();
         cmpUrlMapper = new RuntimeComponentUrlMapper();
+        renderer = new SpyRenderer();
       }));
       function createCompiler(renderCompileResults, protoViewFactoryResults) {
         assert.argumentTypes(renderCompileResults, List, protoViewFactoryResults, assert.genericType(List, AppProtoView));
         var urlResolver = new FakeUrlResolver();
-        renderer = new FakeRenderer(renderCompileResults);
+        renderCompileRequests = [];
+        renderer.spy('compile').andCallFake((function(template) {
+          ListWrapper.push(renderCompileRequests, template);
+          return PromiseWrapper.resolve(ListWrapper.removeAt(renderCompileResults, 0));
+        }));
         protoViewFactory = new FakeProtoViewFactory(protoViewFactoryResults);
         return new Compiler(reader, new CompilerCache(), tplResolver, cmpUrlMapper, urlResolver, renderer, protoViewFactory);
       }
@@ -85,8 +94,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           tplResolver.setView(MainComponent, template);
           var compiler = createCompiler([createRenderProtoView()], [createProtoView()]);
           return assert.returnType((compiler.compile(MainComponent).then((function(protoView) {
-            expect(renderer.requests.length).toBe(1);
-            return renderer.requests[0];
+            expect(renderCompileRequests.length).toBe(1);
+            return renderCompileRequests[0];
           }))), assert.genericType(Promise, renderApi.ViewDefinition));
         }
         Object.defineProperty(captureTemplate, "parameters", {get: function() {
@@ -187,15 +196,15 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
             async.done();
           }));
         })));
-        it('should set directive.bind', inject([AsyncTestCompleter], (function(async) {
-          captureDirective(DirectiveWithBind).then((function(renderDir) {
-            expect(renderDir.properties).toEqual(MapWrapper.createFromStringMap({'a': 'b'}));
+        it('should set directive.hostProperties', inject([AsyncTestCompleter], (function(async) {
+          captureDirective(DirectiveWithProperties).then((function(renderDir) {
+            expect(renderDir.hostProperties).toEqual(MapWrapper.createFromStringMap({'someField': 'someProp'}));
             async.done();
           }));
         })));
-        it('should read @PropertySetter', inject([AsyncTestCompleter], (function(async) {
-          captureDirective(DirectiveWithPropertySetters).then((function(renderDir) {
-            expect(renderDir.setters).toEqual(['someProp']);
+        it('should set directive.bind', inject([AsyncTestCompleter], (function(async) {
+          captureDirective(DirectiveWithBind).then((function(renderDir) {
+            expect(renderDir.properties).toEqual(MapWrapper.createFromStringMap({'a': 'b'}));
             async.done();
           }));
         })));
@@ -316,6 +325,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
         }));
       })));
       it('should create host proto views', inject([AsyncTestCompleter], (function(async) {
+        renderer.spy('createHostProtoView').andCallFake((function(componentId) {
+          return PromiseWrapper.resolve(createRenderProtoView([createRenderComponentElementBinder(0)]));
+        }));
         tplResolver.setView(MainComponent, new View({template: '<div></div>'}));
         var rootProtoView = createProtoView([createComponentElementBinder(reader, MainComponent)]);
         var mainProtoView = createProtoView();
@@ -323,6 +335,19 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
         compiler.compileInHost(MainComponent).then((function(protoView) {
           expect(protoView).toBe(rootProtoView);
           expect(rootProtoView.elementBinders[0].nestedProtoView).toBe(mainProtoView);
+          async.done();
+        }));
+      })));
+      it('should create imperative proto views', inject([AsyncTestCompleter], (function(async) {
+        renderer.spy('createImperativeComponentProtoView').andCallFake((function(rendererId) {
+          return PromiseWrapper.resolve(createRenderProtoView([]));
+        }));
+        tplResolver.setView(MainComponent, new View({renderer: 'some-renderer'}));
+        var mainProtoView = createProtoView();
+        var compiler = createCompiler([], [mainProtoView]);
+        compiler.compile(MainComponent).then((function(protoView) {
+          expect(protoView).toBe(mainProtoView);
+          expect(renderer.spy('createImperativeComponentProtoView')).toHaveBeenCalledWith('some-renderer');
           async.done();
         }));
       })));
@@ -379,6 +404,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       inject = $__m.inject;
       IS_DARTIUM = $__m.IS_DARTIUM;
       it = $__m.it;
+      SpyObject = $__m.SpyObject;
+      proxy = $__m.proxy;
     }, function($__m) {
       List = $__m.List;
       ListWrapper = $__m.ListWrapper;
@@ -386,6 +413,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       MapWrapper = $__m.MapWrapper;
       StringMapWrapper = $__m.StringMapWrapper;
     }, function($__m) {
+      IMPLEMENTS = $__m.IMPLEMENTS;
       Type = $__m.Type;
       isBlank = $__m.isBlank;
       stringify = $__m.stringify;
@@ -408,7 +436,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       Viewport = $__m.Viewport;
       Decorator = $__m.Decorator;
     }, function($__m) {
-      PropertySetter = $__m.PropertySetter;
       Attribute = $__m.Attribute;
     }, function($__m) {
       View = $__m.View;
@@ -424,6 +451,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
     }, function($__m) {
       UrlResolver = $__m.UrlResolver;
     }, function($__m) {
+      Renderer = $__m.Renderer;
       renderApi = $__m;
     }],
     execute: function() {
@@ -496,6 +524,15 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       Object.defineProperty(DirectiveWithEvents, "annotations", {get: function() {
           return [new Decorator({hostListeners: {'someEvent': 'someAction'}})];
         }});
+      DirectiveWithProperties = (function() {
+        var DirectiveWithProperties = function DirectiveWithProperties() {
+          ;
+        };
+        return ($traceurRuntime.createClass)(DirectiveWithProperties, {}, {});
+      }());
+      Object.defineProperty(DirectiveWithProperties, "annotations", {get: function() {
+          return [new Decorator({hostProperties: {'someField': 'someProp'}})];
+        }});
       DirectiveWithBind = (function() {
         var DirectiveWithBind = function DirectiveWithBind() {
           ;
@@ -504,16 +541,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       }());
       Object.defineProperty(DirectiveWithBind, "annotations", {get: function() {
           return [new Decorator({properties: {'a': 'b'}})];
-        }});
-      DirectiveWithPropertySetters = (function() {
-        var DirectiveWithPropertySetters = function DirectiveWithPropertySetters(someProp) {};
-        return ($traceurRuntime.createClass)(DirectiveWithPropertySetters, {}, {});
-      }());
-      Object.defineProperty(DirectiveWithPropertySetters, "annotations", {get: function() {
-          return [new Decorator()];
-        }});
-      Object.defineProperty(DirectiveWithPropertySetters, "parameters", {get: function() {
-          return [[new PropertySetter('someProp')]];
         }});
       DirectiveWithAttributes = (function() {
         var DirectiveWithAttributes = function DirectiveWithAttributes(someAttr) {
@@ -527,25 +554,16 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       Object.defineProperty(DirectiveWithAttributes, "parameters", {get: function() {
           return [[assert.type.string, new Attribute('someAttr')]];
         }});
-      FakeRenderer = (function($__super) {
-        var FakeRenderer = function FakeRenderer(results) {
-          $traceurRuntime.superConstructor(FakeRenderer).call(this);
-          this._results = results;
-          this.requests = [];
+      SpyRenderer = (function($__super) {
+        var SpyRenderer = function SpyRenderer() {
+          $traceurRuntime.superConstructor(SpyRenderer).call(this, Renderer);
         };
-        return ($traceurRuntime.createClass)(FakeRenderer, {
-          compile: function(template) {
-            assert.argumentTypes(template, renderApi.ViewDefinition);
-            ListWrapper.push(this.requests, template);
-            return assert.returnType((PromiseWrapper.resolve(ListWrapper.removeAt(this._results, 0))), assert.genericType(Promise, renderApi.ProtoViewDto));
-          },
-          createHostProtoView: function(componentId) {
-            return assert.returnType((PromiseWrapper.resolve(createRenderProtoView([createRenderComponentElementBinder(0)]))), assert.genericType(Promise, renderApi.ProtoViewDto));
-          }
-        }, {}, $__super);
-      }(renderApi.Renderer));
-      Object.defineProperty(FakeRenderer.prototype.compile, "parameters", {get: function() {
-          return [[renderApi.ViewDefinition]];
+        return ($traceurRuntime.createClass)(SpyRenderer, {noSuchMethod: function(m) {
+            return $traceurRuntime.superGet(this, SpyRenderer.prototype, "noSuchMethod").call(this, m);
+          }}, {}, $__super);
+      }(SpyObject));
+      Object.defineProperty(SpyRenderer, "annotations", {get: function() {
+          return [new proxy, new IMPLEMENTS(Renderer)];
         }});
       FakeUrlResolver = (function($__super) {
         var FakeUrlResolver = function FakeUrlResolver() {

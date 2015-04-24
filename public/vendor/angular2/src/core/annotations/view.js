@@ -16,10 +16,12 @@ System.register(["angular2/src/facade/lang"], function($__export) {
           var $__2 = $__1,
               templateUrl = $__2.templateUrl,
               template = $__2.template,
-              directives = $__2.directives;
+              directives = $__2.directives,
+              renderer = $__2.renderer;
           this.templateUrl = templateUrl;
           this.template = template;
           this.directives = directives;
+          this.renderer = renderer;
         };
         return ($traceurRuntime.createClass)(View, {}, {});
       }()));

@@ -1,7 +1,8 @@
-System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
   "use strict";
   var assert,
       MapWrapper,
+      stringify,
       Key,
       KeyRegistry,
       _globalKeyRegistry;
@@ -10,15 +11,18 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection"], f
       assert = $__m.assert;
     }, function($__m) {
       MapWrapper = $__m.MapWrapper;
+    }, function($__m) {
+      stringify = $__m.stringify;
     }],
     execute: function() {
       Key = $__export("Key", (function() {
         var Key = function Key(token, id) {
           this.token = token;
           this.id = id;
-          this.metadata = null;
         };
-        return ($traceurRuntime.createClass)(Key, {}, {
+        return ($traceurRuntime.createClass)(Key, {get displayName() {
+            return stringify(this.token);
+          }}, {
           get: function(token) {
             return assert.returnType((_globalKeyRegistry.get(token)), Key);
           },

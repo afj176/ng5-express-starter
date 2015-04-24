@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "./proto_change_detector", "./pipes/pipe_registry", "./pipes/iterable_changes", "./pipes/keyvalue_changes", "./pipes/null_pipe", "./constants", "./interfaces", "angular2/di"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "./proto_change_detector", "./pipes/pipe_registry", "./pipes/iterable_changes", "./pipes/keyvalue_changes", "./pipes/async_pipe", "./pipes/null_pipe", "./constants", "./interfaces", "angular2/di"], function($__export) {
   "use strict";
   var assert,
       DynamicProtoChangeDetector,
@@ -6,11 +6,15 @@ System.register(["rtts_assert/rtts_assert", "./proto_change_detector", "./pipes/
       PipeRegistry,
       IterableChangesFactory,
       KeyValueChangesFactory,
+      AsyncPipeFactory,
       NullPipeFactory,
       DEFAULT,
       ChangeDetection,
       ProtoChangeDetector,
       Injectable,
+      keyValDiff,
+      iterableDiff,
+      async,
       defaultPipes,
       DynamicChangeDetection,
       JitChangeDetection,
@@ -28,6 +32,8 @@ System.register(["rtts_assert/rtts_assert", "./proto_change_detector", "./pipes/
     }, function($__m) {
       KeyValueChangesFactory = $__m.KeyValueChangesFactory;
     }, function($__m) {
+      AsyncPipeFactory = $__m.AsyncPipeFactory;
+    }, function($__m) {
       NullPipeFactory = $__m.NullPipeFactory;
     }, function($__m) {
       DEFAULT = $__m.DEFAULT;
@@ -38,9 +44,13 @@ System.register(["rtts_assert/rtts_assert", "./proto_change_detector", "./pipes/
       Injectable = $__m.Injectable;
     }],
     execute: function() {
+      keyValDiff = $__export("keyValDiff", [new KeyValueChangesFactory(), new NullPipeFactory()]);
+      iterableDiff = $__export("iterableDiff", [new IterableChangesFactory(), new NullPipeFactory()]);
+      async = $__export("async", [new AsyncPipeFactory(), new NullPipeFactory()]);
       defaultPipes = $__export("defaultPipes", {
-        "iterableDiff": [new IterableChangesFactory(), new NullPipeFactory()],
-        "keyValDiff": [new KeyValueChangesFactory(), new NullPipeFactory()]
+        "iterableDiff": iterableDiff,
+        "keyValDiff": keyValDiff,
+        "async": async
       });
       DynamicChangeDetection = $__export("DynamicChangeDetection", (function($__super) {
         var DynamicChangeDetection = function DynamicChangeDetection(registry) {

@@ -60,6 +60,14 @@ System.register(["angular2/test_lib", "angular2/src/dom/dom_adapter", "angular2/
           async.done();
         }));
       })));
+      it('should create imperative proto views', inject([AsyncTestCompleter], (function(async) {
+        createRenderer();
+        renderer.createImperativeComponentProtoView('someRenderId').then((function(rootProtoView) {
+          expect(rootProtoView.elementBinders).toEqual([]);
+          expect(rootProtoView.render.delegate.imperativeRendererId).toBe('someRenderId');
+          async.done();
+        }));
+      })));
       it('should add a static component', inject([AsyncTestCompleter], (function(async) {
         createRenderer();
         renderer.createHostProtoView('someComponentId').then((function(rootProtoView) {

@@ -108,7 +108,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       $LBRACE,
       $BAR,
       $RBRACE,
-      $TILDE,
       $NBSP,
       ScannerError,
       _Scanner,
@@ -350,7 +349,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       $LBRACE = $__export("$LBRACE", 123);
       $BAR = $__export("$BAR", 124);
       $RBRACE = $__export("$RBRACE", 125);
-      $TILDE = 126;
       $NBSP = 160;
       ScannerError = $__export("ScannerError", (function($__super) {
         var ScannerError = function ScannerError(message) {
@@ -433,8 +431,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
                 return assert.returnType((this.scanComplexOperator(start, $AMPERSAND, '&', '&')), Token);
               case $BAR:
                 return assert.returnType((this.scanComplexOperator(start, $BAR, '|', '|')), Token);
-              case $TILDE:
-                return assert.returnType((this.scanComplexOperator(start, $SLASH, '~', '/')), Token);
               case $NBSP:
                 while (isWhitespace(this.peek))
                   this.advance();
@@ -461,7 +457,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             assert(this.peek == StringWrapper.charCodeAt(one, 0));
             this.advance();
             var str = assert.type(one, assert.type.string);
-            if (this.peek == code) {
+            while (this.peek == code) {
               this.advance();
               str += two;
             }
@@ -597,7 +593,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       Object.defineProperty(unescape, "parameters", {get: function() {
           return [[int]];
         }});
-      OPERATORS = SetWrapper.createFromList(['+', '-', '*', '/', '~/', '%', '^', '=', '==', '!=', '<', '>', '<=', '>=', '&&', '||', '&', '|', '!', '?', '#']);
+      OPERATORS = SetWrapper.createFromList(['+', '-', '*', '/', '%', '^', '=', '==', '!=', '===', '!==', '<', '>', '<=', '>=', '&&', '||', '&', '|', '!', '?', '#']);
       KEYWORDS = SetWrapper.createFromList(['var', 'null', 'undefined', 'true', 'false']);
     }
   };

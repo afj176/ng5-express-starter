@@ -5,6 +5,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       isBlank,
       SetterFn,
       AST,
+      DirectiveIndex,
       DirectiveRecord,
       DIRECTIVE,
       ELEMENT,
@@ -21,6 +22,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
     }, function($__m) {
       AST = $__m.AST;
     }, function($__m) {
+      DirectiveIndex = $__m.DirectiveIndex;
       DirectiveRecord = $__m.DirectiveRecord;
     }],
     execute: function() {
@@ -28,9 +30,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       ELEMENT = "element";
       TEXT_NODE = "textNode";
       BindingRecord = $__export("BindingRecord", (function() {
-        var BindingRecord = function BindingRecord(mode, ast, elementIndex, propertyName, setter, directiveRecord) {
-          assert.argumentTypes(mode, assert.type.string, ast, AST, elementIndex, assert.type.number, propertyName, assert.type.string, setter, SetterFn, directiveRecord, DirectiveRecord);
+        var BindingRecord = function BindingRecord(mode, implicitReceiver, ast, elementIndex, propertyName, setter, directiveRecord) {
+          assert.argumentTypes(mode, assert.type.string, implicitReceiver, assert.type.any, ast, AST, elementIndex, assert.type.number, propertyName, assert.type.string, setter, SetterFn, directiveRecord, DirectiveRecord);
           this.mode = mode;
+          this.implicitReceiver = implicitReceiver;
           this.ast = ast;
           this.elementIndex = elementIndex;
           this.propertyName = propertyName;
@@ -56,26 +59,33 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         }, {
           createForDirective: function(ast, propertyName, setter, directiveRecord) {
             assert.argumentTypes(ast, AST, propertyName, assert.type.string, setter, SetterFn, directiveRecord, DirectiveRecord);
-            return new BindingRecord(DIRECTIVE, ast, 0, propertyName, setter, directiveRecord);
+            return new BindingRecord(DIRECTIVE, 0, ast, 0, propertyName, setter, directiveRecord);
           },
           createForElement: function(ast, elementIndex, propertyName) {
             assert.argumentTypes(ast, AST, elementIndex, assert.type.number, propertyName, assert.type.string);
-            return new BindingRecord(ELEMENT, ast, elementIndex, propertyName, null, null);
+            return new BindingRecord(ELEMENT, 0, ast, elementIndex, propertyName, null, null);
+          },
+          createForHostProperty: function(directiveIndex, ast, propertyName) {
+            assert.argumentTypes(directiveIndex, DirectiveIndex, ast, AST, propertyName, assert.type.string);
+            return new BindingRecord(ELEMENT, directiveIndex, ast, directiveIndex.elementIndex, propertyName, null, null);
           },
           createForTextNode: function(ast, elementIndex) {
             assert.argumentTypes(ast, AST, elementIndex, assert.type.number);
-            return new BindingRecord(TEXT_NODE, ast, elementIndex, null, null, null);
+            return new BindingRecord(TEXT_NODE, 0, ast, elementIndex, null, null, null);
           }
         });
       }()));
       Object.defineProperty(BindingRecord, "parameters", {get: function() {
-          return [[assert.type.string], [AST], [assert.type.number], [assert.type.string], [SetterFn], [DirectiveRecord]];
+          return [[assert.type.string], [assert.type.any], [AST], [assert.type.number], [assert.type.string], [SetterFn], [DirectiveRecord]];
         }});
       Object.defineProperty(BindingRecord.createForDirective, "parameters", {get: function() {
           return [[AST], [assert.type.string], [SetterFn], [DirectiveRecord]];
         }});
       Object.defineProperty(BindingRecord.createForElement, "parameters", {get: function() {
           return [[AST], [assert.type.number], [assert.type.string]];
+        }});
+      Object.defineProperty(BindingRecord.createForHostProperty, "parameters", {get: function() {
+          return [[DirectiveIndex], [AST], [assert.type.string]];
         }});
       Object.defineProperty(BindingRecord.createForTextNode, "parameters", {get: function() {
           return [[AST], [assert.type.number]];

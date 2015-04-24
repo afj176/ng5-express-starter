@@ -18,6 +18,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       proxy,
       IMPLEMENTS,
       isBlank,
+      isPresent,
       RenderProtoView,
       ElementBinder,
       RenderView,
@@ -29,7 +30,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       RenderViewHydrator,
       SpyEventManager,
       SpyShadowDomStrategy,
-      SpyLightDom;
+      SpyLightDom,
+      SpyViewFactory;
   function main() {
     describe('RenderViewHydrator', (function() {
       var shadowDomStrategy;
@@ -69,7 +71,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       }
       function createHostView(pv, shadowDomView) {
         var view = new RenderView(pv, [el('<div></div>')], [], [el('<div></div>')], [null]);
-        viewFactory.setComponentView(view, 0, shadowDomView);
+        ViewFactory.setComponentView(shadowDomStrategy, view, 0, shadowDomView);
         return view;
       }
       function hydrate(view) {
@@ -84,8 +86,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
         shadowDomStrategy.spy('constructLightDom').andCallFake((function(lightDomView, shadowDomView, el) {
           return new SpyLightDom();
         }));
-        viewFactory = new ViewFactory(1, eventManager, shadowDomStrategy);
-        viewHydrator = new RenderViewHydrator(eventManager, viewFactory);
+        viewFactory = new SpyViewFactory();
+        viewHydrator = new RenderViewHydrator(eventManager, viewFactory, shadowDomStrategy);
       }));
       describe('hydrateDynamicComponentView', (function() {
         it('should redistribute', (function() {
@@ -95,6 +97,43 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           viewHydrator.hydrateDynamicComponentView(hostView, 0, shadowView);
           var lightDomSpy = assert.type(hostView.lightDoms[0], SpyLightDom);
           expect(lightDomSpy.spy('redistribute')).toHaveBeenCalled();
+        }));
+      }));
+      describe('hydrateInPlaceHostView', (function() {
+        function createInPlaceHostView() {
+          var hostPv = createHostProtoView(createProtoView());
+          var shadowView = createEmptyView();
+          return createHostView(hostPv, shadowView);
+        }
+        it('should hydrate the view', (function() {
+          var hostView = createInPlaceHostView();
+          viewHydrator.hydrateInPlaceHostView(null, hostView);
+          expect(hostView.hydrated).toBe(true);
+        }));
+        it('should store the view in the parent view', (function() {
+          var parentView = createEmptyView();
+          var hostView = createInPlaceHostView();
+          viewHydrator.hydrateInPlaceHostView(parentView, hostView);
+          expect(parentView.imperativeHostViews).toEqual([hostView]);
+        }));
+      }));
+      describe('dehydrateInPlaceHostView', (function() {
+        function createAndHydrateInPlaceHostView(parentView) {
+          var hostPv = createHostProtoView(createProtoView());
+          var shadowView = createEmptyView();
+          var hostView = createHostView(hostPv, shadowView);
+          viewHydrator.hydrateInPlaceHostView(parentView, hostView);
+          return hostView;
+        }
+        it('should clear the host view', (function() {
+          var parentView = createEmptyView();
+          var hostView = createAndHydrateInPlaceHostView(parentView);
+          var rootNodes = hostView.rootNodes;
+          expect(rootNodes[0].parentNode).toBeTruthy();
+          viewHydrator.dehydrateInPlaceHostView(parentView, hostView);
+          expect(parentView.imperativeHostViews).toEqual([]);
+          expect(rootNodes[0].parentNode).toBeFalsy();
+          expect(hostView.rootNodes).toEqual([]);
         }));
       }));
       describe('hydrate... shared functionality', (function() {
@@ -109,8 +148,12 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       describe('dehydrate... shared functionality', (function() {
         var hostView;
         function createAndHydrate(nestedProtoView, shadowView) {
+          var imperativeHostView = arguments[2] !== (void 0) ? arguments[2] : null;
           var hostPv = createHostProtoView(nestedProtoView);
           hostView = createHostView(hostPv, shadowView);
+          if (isPresent(imperativeHostView)) {
+            viewHydrator.hydrateInPlaceHostView(hostView, imperativeHostView);
+          }
           hydrate(hostView);
         }
         it('should dehydrate child components', (function() {
@@ -126,13 +169,29 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
           dehydrate(hostView);
           expect(hostView.componentChildViews[0]).toBe(shadowView);
           expect(shadowView.rootNodes[0].parentNode).toBeTruthy();
+          expect(viewFactory.spy('returnView')).not.toHaveBeenCalled();
         }));
         it('should clear dynamic child components', (function() {
           var shadowView = createEmptyView();
           createAndHydrate(null, shadowView);
+          expect(shadowView.rootNodes[0].parentNode).toBeTruthy();
           dehydrate(hostView);
           expect(hostView.componentChildViews[0]).toBe(null);
           expect(shadowView.rootNodes[0].parentNode).toBe(null);
+          expect(viewFactory.spy('returnView')).toHaveBeenCalledWith(shadowView);
+        }));
+        it('should clear imperatively added child components', (function() {
+          var shadowView = createEmptyView();
+          createAndHydrate(createProtoView(), shadowView);
+          var impHostView = createHostView(createHostProtoView(createProtoView()), createEmptyView());
+          shadowView.imperativeHostViews = [impHostView];
+          var rootNodes = impHostView.rootNodes;
+          expect(rootNodes[0].parentNode).toBeTruthy();
+          dehydrate(hostView);
+          expect(shadowView.imperativeHostViews).toEqual([]);
+          expect(impHostView.rootNodes).toEqual([]);
+          expect(rootNodes[0].parentNode).toBeFalsy();
+          expect(viewFactory.spy('returnView')).toHaveBeenCalledWith(impHostView);
         }));
       }));
     }));
@@ -160,6 +219,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
     }, function($__m) {
       IMPLEMENTS = $__m.IMPLEMENTS;
       isBlank = $__m.isBlank;
+      isPresent = $__m.isPresent;
     }, function($__m) {
       RenderProtoView = $__m.RenderProtoView;
     }, function($__m) {
@@ -212,6 +272,17 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       }(SpyObject));
       Object.defineProperty(SpyLightDom, "annotations", {get: function() {
           return [new proxy, new IMPLEMENTS(LightDom)];
+        }});
+      SpyViewFactory = (function($__super) {
+        var SpyViewFactory = function SpyViewFactory() {
+          $traceurRuntime.superConstructor(SpyViewFactory).call(this, ViewFactory);
+        };
+        return ($traceurRuntime.createClass)(SpyViewFactory, {noSuchMethod: function(m) {
+            return $traceurRuntime.superGet(this, SpyViewFactory.prototype, "noSuchMethod").call(this, m);
+          }}, {}, $__super);
+      }(SpyObject));
+      Object.defineProperty(SpyViewFactory, "annotations", {get: function() {
+          return [new proxy, new IMPLEMENTS(ViewFactory)];
         }});
     }
   };

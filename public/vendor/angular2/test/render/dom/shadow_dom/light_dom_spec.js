@@ -85,6 +85,19 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
           expect(toHtml(wildcard.nodes())).toEqual(["<a>1</a>", "<b>2</b>", "<a>3</a>"]);
           expect(toHtml(contentB.nodes())).toEqual([]);
         }));
+        it("should remove all nodes if there are no content tags", (function() {
+          var lightDomEl = el("<div><a>1</a><b>2</b><a>3</a></div>");
+          var lightDom = new LightDom(lightDomView, new FakeView([]), lightDomEl);
+          lightDom.redistribute();
+          expect(DOM.childNodes(lightDomEl).length).toBe(0);
+        }));
+        it("should remove all not projected nodes", (function() {
+          var lightDomEl = el("<div><a>1</a><b>2</b><a>3</a></div>");
+          var bNode = DOM.childNodes(lightDomEl)[1];
+          var lightDom = new LightDom(lightDomView, new FakeView([new FakeContentTag(null, "a")]), lightDomEl);
+          lightDom.redistribute();
+          expect(bNode.parentNode).toBe(null);
+        }));
       }));
     });
   }
@@ -190,7 +203,7 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
         };
         return ($traceurRuntime.createClass)(FakeContentTag, {
           insert: function(nodes) {
-            this._nodes = ListWrapper.clone(nodes);
+            this._nodes = nodes;
           },
           nodes: function() {
             return this._nodes;

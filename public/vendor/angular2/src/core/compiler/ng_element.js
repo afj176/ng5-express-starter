@@ -31,7 +31,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/dom/dom_adapter", "ang
           },
           getAttribute: function(name) {
             assert.argumentTypes(name, assert.type.string);
-            return normalizeBlank(DOM.getAttribute(this.domElement, name));
+            return assert.returnType((normalizeBlank(DOM.getAttribute(this.domElement, name))), assert.type.string);
           }
         }, {});
       }()));

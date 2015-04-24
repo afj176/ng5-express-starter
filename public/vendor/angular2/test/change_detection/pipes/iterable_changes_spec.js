@@ -1,4 +1,4 @@
-System.register(["angular2/test_lib", "angular2/src/change_detection/pipes/iterable_changes", "angular2/src/facade/lang", "angular2/src/facade/collection", "./iterable", "./util"], function($__export) {
+System.register(["angular2/test_lib", "angular2/src/change_detection/pipes/iterable_changes", "angular2/src/facade/lang", "angular2/src/facade/collection", "../iterable", "../util"], function($__export) {
   "use strict";
   var describe,
       it,

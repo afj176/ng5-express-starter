@@ -43,7 +43,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
         };
         return ($traceurRuntime.createClass)(ViewContainer, {
           getRender: function() {
-            return new ViewContainerRef(this.parentView.render, this.elementInjector.getBoundElementIndex());
+            return assert.returnType((new ViewContainerRef(this.parentView.render, this.elementInjector.getBoundElementIndex())), ViewContainerRef);
           },
           internalClearWithoutRender: function() {
             for (var i = this._views.length - 1; i >= 0; i--) {
@@ -65,17 +65,17 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           _siblingInjectorToLinkAfter: function(index) {
             assert.argumentTypes(index, assert.type.number);
             if (index == 0)
-              return null;
-            return ListWrapper.last(this._views[index - 1].rootElementInjectors);
+              return assert.returnType((null), eiModule.ElementInjector);
+            return assert.returnType((ListWrapper.last(this._views[index - 1].rootElementInjectors)), eiModule.ElementInjector);
           },
           hydrated: function() {
-            return this.parentView.hydrated();
+            return assert.returnType((this.parentView.hydrated()), assert.type.boolean);
           },
           create: function() {
             var atIndex = arguments[0] !== (void 0) ? arguments[0] : -1;
             var protoView = arguments[1] !== (void 0) ? arguments[1] : null;
             var injector = arguments[2] !== (void 0) ? arguments[2] : null;
-            assert.argumentTypes(atIndex, assert.type.any, protoView, viewModule.AppProtoView, injector, Injector);
+            assert.argumentTypes(atIndex, assert.type.number, protoView, viewModule.AppProtoView, injector, Injector);
             if (atIndex == -1)
               atIndex = this._views.length;
             if (!this.hydrated())
@@ -90,6 +90,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           },
           insert: function(view) {
             var atIndex = arguments[1] !== (void 0) ? arguments[1] : -1;
+            assert.argumentTypes(view, viewModule.AppView, atIndex, assert.type.number);
             if (atIndex == -1)
               atIndex = this._views.length;
             this._insertInjectors(view, atIndex);
@@ -98,12 +99,18 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
             return assert.returnType((view), viewModule.AppView);
           },
           _insertInjectors: function(view, atIndex) {
+            assert.argumentTypes(view, viewModule.AppView, atIndex, assert.type.number);
             ListWrapper.insert(this._views, atIndex, view);
             this._linkElementInjectors(this._siblingInjectorToLinkAfter(atIndex), view);
             return assert.returnType((view), viewModule.AppView);
           },
+          indexOf: function(view) {
+            assert.argumentTypes(view, viewModule.AppView);
+            return ListWrapper.indexOf(this._views, view);
+          },
           remove: function() {
             var atIndex = arguments[0] !== (void 0) ? arguments[0] : -1;
+            assert.argumentTypes(atIndex, assert.type.number);
             if (atIndex == -1)
               atIndex = this._views.length - 1;
             var view = this._views[atIndex];
@@ -113,6 +120,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           },
           detach: function() {
             var atIndex = arguments[0] !== (void 0) ? arguments[0] : -1;
+            assert.argumentTypes(atIndex, assert.type.number);
             if (atIndex == -1)
               atIndex = this._views.length - 1;
             var detachedView = this._detachInjectors(atIndex);
@@ -121,17 +129,20 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
             return assert.returnType((detachedView), viewModule.AppView);
           },
           _detachInjectors: function(atIndex) {
+            assert.argumentTypes(atIndex, assert.type.number);
             var detachedView = this.get(atIndex);
             ListWrapper.removeAt(this._views, atIndex);
             this._unlinkElementInjectors(detachedView);
             return assert.returnType((detachedView), viewModule.AppView);
           },
           _linkElementInjectors: function(sibling, view) {
+            assert.argumentTypes(sibling, assert.type.any, view, viewModule.AppView);
             for (var i = view.rootElementInjectors.length - 1; i >= 0; i--) {
               view.rootElementInjectors[i].linkAfter(this.elementInjector, sibling);
             }
           },
           _unlinkElementInjectors: function(view) {
+            assert.argumentTypes(view, viewModule.AppView);
             for (var i = 0; i < view.rootElementInjectors.length; ++i) {
               view.rootElementInjectors[i].unlink();
             }
@@ -148,7 +159,31 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
           return [[assert.type.number]];
         }});
       Object.defineProperty(ViewContainer.prototype.create, "parameters", {get: function() {
-          return [[], [viewModule.AppProtoView], [Injector]];
+          return [[assert.type.number], [viewModule.AppProtoView], [Injector]];
+        }});
+      Object.defineProperty(ViewContainer.prototype.insert, "parameters", {get: function() {
+          return [[viewModule.AppView], [assert.type.number]];
+        }});
+      Object.defineProperty(ViewContainer.prototype._insertInjectors, "parameters", {get: function() {
+          return [[viewModule.AppView], [assert.type.number]];
+        }});
+      Object.defineProperty(ViewContainer.prototype.indexOf, "parameters", {get: function() {
+          return [[viewModule.AppView]];
+        }});
+      Object.defineProperty(ViewContainer.prototype.remove, "parameters", {get: function() {
+          return [[assert.type.number]];
+        }});
+      Object.defineProperty(ViewContainer.prototype.detach, "parameters", {get: function() {
+          return [[assert.type.number]];
+        }});
+      Object.defineProperty(ViewContainer.prototype._detachInjectors, "parameters", {get: function() {
+          return [[assert.type.number]];
+        }});
+      Object.defineProperty(ViewContainer.prototype._linkElementInjectors, "parameters", {get: function() {
+          return [[], [viewModule.AppView]];
+        }});
+      Object.defineProperty(ViewContainer.prototype._unlinkElementInjectors, "parameters", {get: function() {
+          return [[viewModule.AppView]];
         }});
     }
   };

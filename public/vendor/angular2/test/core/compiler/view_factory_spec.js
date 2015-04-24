@@ -44,7 +44,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
       }));
       function createViewFactory($__1) {
         var capacity = $__1.capacity;
-        return assert.returnType((new ViewFactory(capacity, renderer, null)), ViewFactory);
+        return assert.returnType((new ViewFactory(capacity, renderer)), ViewFactory);
       }
       function createProtoChangeDetector() {
         var pcd = new SpyProtoChangeDetector();
@@ -72,9 +72,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/f
         binder.nestedProtoView = nestedProtoView;
         return binder;
       }
-      it('should create views', (function() {
+      it('should create views without cache', (function() {
         var pv = createProtoView();
-        var vf = createViewFactory({capacity: 1});
+        var vf = createViewFactory({capacity: 0});
         expect(vf.getView(pv) instanceof AppView).toBe(true);
       }));
       describe('caching', (function() {

@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/di", "angular2/src/facade/lang", "angular2/src/facade/collection", "./model", "./validators"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/di", "angular2/src/render/api", "angular2/src/facade/lang", "angular2/src/facade/collection", "./model", "./validators"], function($__export) {
   "use strict";
   var assert,
       View,
@@ -6,8 +6,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/di", 
       Decorator,
       Ancestor,
       onChange,
-      PropertySetter,
+      ElementRef,
       Optional,
+      Renderer,
       isBlank,
       isPresent,
       isString,
@@ -31,9 +32,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/di", 
       Decorator = $__m.Decorator;
       Ancestor = $__m.Ancestor;
       onChange = $__m.onChange;
-      PropertySetter = $__m.PropertySetter;
+      ElementRef = $__m.ElementRef;
     }, function($__m) {
       Optional = $__m.Optional;
+    }, function($__m) {
+      Renderer = $__m.Renderer;
     }, function($__m) {
       isBlank = $__m.isBlank;
       isPresent = $__m.isPresent;
@@ -50,13 +53,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/di", 
     }],
     execute: function() {
       DefaultValueAccessor = $__export("DefaultValueAccessor", (function() {
-        var DefaultValueAccessor = function DefaultValueAccessor(setValueProperty) {
-          assert.argumentTypes(setValueProperty, Function);
-          this._setValueProperty = setValueProperty;
+        var DefaultValueAccessor = function DefaultValueAccessor() {
           this.onChange = (function(_) {});
         };
         return ($traceurRuntime.createClass)(DefaultValueAccessor, {writeValue: function(value) {
-            this._setValueProperty(value);
+            this.value = value;
           }}, {});
       }()));
       Object.defineProperty(DefaultValueAccessor, "annotations", {get: function() {
@@ -65,31 +66,31 @@ System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/di", 
             hostListeners: {
               'change': 'onChange($event.target.value)',
               'input': 'onChange($event.target.value)'
-            }
+            },
+            hostProperties: {'value': 'value'}
           })];
         }});
-      Object.defineProperty(DefaultValueAccessor, "parameters", {get: function() {
-          return [[Function, new PropertySetter('value')]];
-        }});
       CheckboxControlValueAccessor = $__export("CheckboxControlValueAccessor", (function() {
-        var CheckboxControlValueAccessor = function CheckboxControlValueAccessor(cd, setCheckedProperty) {
-          assert.argumentTypes(cd, ControlDirective, setCheckedProperty, Function);
-          this._setCheckedProperty = setCheckedProperty;
+        var CheckboxControlValueAccessor = function CheckboxControlValueAccessor(cd, elementRef, renderer) {
+          assert.argumentTypes(cd, ControlDirective, elementRef, ElementRef, renderer, Renderer);
           this.onChange = (function(_) {});
+          this._elementRef = elementRef;
+          this._renderer = renderer;
           cd.valueAccessor = this;
         };
         return ($traceurRuntime.createClass)(CheckboxControlValueAccessor, {writeValue: function(value) {
-            this._setCheckedProperty(value);
+            this._renderer.setElementProperty(this._elementRef.hostView.render, this._elementRef.boundElementIndex, 'checked', value);
           }}, {});
       }()));
       Object.defineProperty(CheckboxControlValueAccessor, "annotations", {get: function() {
           return [new Decorator({
             selector: 'input[type=checkbox][control]',
-            hostListeners: {'change': 'onChange($event.target.checked)'}
+            hostListeners: {'change': 'onChange($event.target.checked)'},
+            hostProperties: {'checked': 'checked'}
           })];
         }});
       Object.defineProperty(CheckboxControlValueAccessor, "parameters", {get: function() {
-          return [[ControlDirective], [Function, new PropertySetter('checked')]];
+          return [[ControlDirective], [ElementRef], [Renderer]];
         }});
       ControlDirective = $__export("ControlDirective", (function() {
         var ControlDirective = function ControlDirective(groupDirective, valueAccessor) {

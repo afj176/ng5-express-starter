@@ -37,13 +37,13 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/collection", "a
         return ($traceurRuntime.createClass)(PipeRegistry, {get: function(type, obj, cdRef) {
             var listOfConfigs = this.config[type];
             if (isBlank(listOfConfigs)) {
-              throw new BaseException(("Cannot find a pipe for type '" + type + "' object '" + obj + "'"));
+              throw new BaseException(("Cannot find '" + type + "' pipe supporting object '" + obj + "'"));
             }
             var matchingConfig = ListWrapper.find(listOfConfigs, (function(pipeConfig) {
               return pipeConfig.supports(obj);
             }));
             if (isBlank(matchingConfig)) {
-              throw new BaseException(("Cannot find a pipe for type '" + type + "' object '" + obj + "'"));
+              throw new BaseException(("Cannot find '" + type + "' pipe supporting object '" + obj + "'"));
             }
             return assert.returnType((matchingConfig.create(cdRef)), Pipe);
           }}, {});

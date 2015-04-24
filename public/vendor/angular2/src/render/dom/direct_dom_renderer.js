@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/async", "angular2/src/facade/collection", "angular2/src/facade/lang", "../api", "./view/view", "./view/proto_view", "./view/view_factory", "./view/view_hydrator", "./compiler/compiler", "./shadow_dom/shadow_dom_strategy", "./view/proto_view_builder", "angular2/src/dom/dom_adapter"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/async", "angular2/src/facade/collection", "angular2/src/facade/lang", "../api", "./view/view", "./view/proto_view", "./view/view_factory", "./view/view_hydrator", "./compiler/compiler", "./shadow_dom/shadow_dom_strategy", "./view/proto_view_builder", "angular2/src/dom/dom_adapter", "./view/view_container"], function($__export) {
   "use strict";
   var assert,
       Injectable,
@@ -18,6 +18,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       ShadowDomStrategy,
       ProtoViewBuilder,
       DOM,
+      ViewContainer,
       DirectDomProtoViewRef,
       DirectDomViewRef,
       DirectDomRenderer;
@@ -83,6 +84,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       ProtoViewBuilder = $__m.ProtoViewBuilder;
     }, function($__m) {
       DOM = $__m.DOM;
+    }, function($__m) {
+      ViewContainer = $__m.ViewContainer;
     }],
     execute: function() {
       Object.defineProperty(_resolveViewContainer, "parameters", {get: function() {
@@ -137,6 +140,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             elBinder.bindDirective(0);
             this._shadowDomStrategy.processElement(null, componentId, rootElement);
             return assert.returnType((PromiseWrapper.resolve(hostProtoViewBuilder.build())), assert.genericType(Promise, api.ProtoViewDto));
+          },
+          createImperativeComponentProtoView: function(rendererId) {
+            var protoViewBuilder = new ProtoViewBuilder(null);
+            protoViewBuilder.setImperativeRendererId(rendererId);
+            return assert.returnType((PromiseWrapper.resolve(protoViewBuilder.build())), assert.genericType(Promise, api.ProtoViewDto));
           },
           compile: function(template) {
             assert.argumentTypes(template, api.ViewDefinition);
@@ -195,6 +203,21 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             var hostView = _resolveView(hostViewRef);
             this._viewHydrator.dehydrateInPlaceHostView(parentView, hostView);
           },
+          setImperativeComponentRootNodes: function(parentViewRef, elementIndex, nodes) {
+            assert.argumentTypes(parentViewRef, api.ViewRef, elementIndex, assert.type.number, nodes, List);
+            var parentView = _resolveView(parentViewRef);
+            var hostElement = parentView.boundElements[elementIndex];
+            var componentView = parentView.componentChildViews[elementIndex];
+            if (isBlank(componentView)) {
+              throw new BaseException(("There is no componentChildView at index " + elementIndex));
+            }
+            if (isBlank(componentView.proto.imperativeRendererId)) {
+              throw new BaseException("This component view has no imperative renderer");
+            }
+            ViewContainer.removeViewNodes(componentView);
+            componentView.rootNodes = nodes;
+            this._shadowDomStrategy.attachTemplate(hostElement, componentView);
+          },
           setElementProperty: function(viewRef, elementIndex, propertyName, propertyValue) {
             assert.argumentTypes(viewRef, api.ViewRef, elementIndex, assert.type.number, propertyName, assert.type.string, propertyValue, assert.type.any);
             _resolveView(viewRef).setElementProperty(elementIndex, propertyName, propertyValue);
@@ -244,6 +267,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
         }});
       Object.defineProperty(DirectDomRenderer.prototype.destroyInPlaceHostView, "parameters", {get: function() {
           return [[api.ViewRef], [api.ViewRef]];
+        }});
+      Object.defineProperty(DirectDomRenderer.prototype.setImperativeComponentRootNodes, "parameters", {get: function() {
+          return [[api.ViewRef], [assert.type.number], [List]];
         }});
       Object.defineProperty(DirectDomRenderer.prototype.setElementProperty, "parameters", {get: function() {
           return [[api.ViewRef], [assert.type.number], [assert.type.string], [assert.type.any]];

@@ -1,4 +1,4 @@
-System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/dom/dom_adapter", "angular2/change_detection", "angular2/src/reflection/types", "./proto_view", "./element_binder", "./property_setter_factory", "../../api", "../direct_dom_renderer", "../util"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/dom/dom_adapter", "angular2/change_detection", "./proto_view", "./element_binder", "./property_setter_factory", "../../api", "../direct_dom_renderer", "../util"], function($__export) {
   "use strict";
   var assert,
       isPresent,
@@ -16,7 +16,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       AccessMember,
       LiteralArray,
       ImplicitReceiver,
-      SetterFn,
       RenderProtoView,
       ElementBinder,
       Event,
@@ -52,8 +51,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       LiteralArray = $__m.LiteralArray;
       ImplicitReceiver = $__m.ImplicitReceiver;
     }, function($__m) {
-      SetterFn = $__m.SetterFn;
-    }, function($__m) {
       RenderProtoView = $__m.RenderProtoView;
     }, function($__m) {
       ElementBinder = $__m.ElementBinder;
@@ -74,8 +71,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           this.rootElement = rootElement;
           this.elements = [];
           this.variableBindings = MapWrapper.create();
+          this.imperativeRendererId = null;
         };
         return ($traceurRuntime.createClass)(ProtoViewBuilder, {
+          setImperativeRendererId: function(id) {
+            assert.argumentTypes(id, assert.type.string);
+            this.imperativeRendererId = id;
+            return assert.returnType((this), ProtoViewBuilder);
+          },
           bindElement: function(element) {
             var description = arguments[1] !== (void 0) ? arguments[1] : null;
             var builder = new ElementBinderBuilder(this.elements.length, element, description);
@@ -91,16 +94,20 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             var apiElementBinders = [];
             ListWrapper.forEach(this.elements, (function(ebb) {
               var propertySetters = MapWrapper.create();
-              var apiDirectiveBinders = ListWrapper.map(ebb.directives, (function(db) {
-                ebb.eventBuilder.merge(db.eventBuilder);
+              var apiDirectiveBinders = ListWrapper.map(ebb.directives, (function(dbb) {
+                ebb.eventBuilder.merge(dbb.eventBuilder);
+                MapWrapper.forEach(dbb.hostPropertyBindings, (function(_, hostPropertyName) {
+                  MapWrapper.set(propertySetters, hostPropertyName, setterFactory(hostPropertyName));
+                }));
                 return new api.DirectiveBinder({
-                  directiveIndex: db.directiveIndex,
-                  propertyBindings: db.propertyBindings,
-                  eventBindings: db.eventBindings
+                  directiveIndex: dbb.directiveIndex,
+                  propertyBindings: dbb.propertyBindings,
+                  eventBindings: dbb.eventBindings,
+                  hostPropertyBindings: dbb.hostPropertyBindings
                 });
               }));
-              MapWrapper.forEach(ebb.propertySetters, (function(setter, propertyName) {
-                MapWrapper.set(propertySetters, propertyName, setter);
+              MapWrapper.forEach(ebb.propertyBindings, (function(_, propertyName) {
+                MapWrapper.set(propertySetters, propertyName, setterFactory(propertyName));
               }));
               var nestedProtoView = isPresent(ebb.nestedProtoView) ? ebb.nestedProtoView.build() : null;
               var parentIndex = isPresent(ebb.parent) ? ebb.parent.index : -1;
@@ -132,7 +139,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             return assert.returnType((new api.ProtoViewDto({
               render: new directDomRenderer.DirectDomProtoViewRef(new RenderProtoView({
                 element: this.rootElement,
-                elementBinders: renderElementBinders
+                elementBinders: renderElementBinders,
+                imperativeRendererId: this.imperativeRendererId
               })),
               elementBinders: apiElementBinders,
               variableBindings: this.variableBindings
@@ -140,6 +148,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           }
         }, {});
       }()));
+      Object.defineProperty(ProtoViewBuilder.prototype.setImperativeRendererId, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
       ElementBinderBuilder = $__export("ElementBinderBuilder", (function() {
         var ElementBinderBuilder = function ElementBinderBuilder(index, element, description) {
           this.element = element;
@@ -155,7 +166,6 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           this.textBindings = [];
           this.textBindingIndices = [];
           this.contentTagSelector = null;
-          this.propertySetters = MapWrapper.create();
           this.componentId = null;
           this.readAttributes = MapWrapper.create();
         };
@@ -189,10 +199,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           },
           bindProperty: function(name, expression) {
             MapWrapper.set(this.propertyBindings, name, expression);
-            this.bindPropertySetter(name);
-          },
-          bindPropertySetter: function(name) {
-            MapWrapper.set(this.propertySetters, name, setterFactory(name));
+            setterFactory(name);
           },
           bindVariable: function(name, value) {
             if (isPresent(this.nestedProtoView)) {
@@ -238,12 +245,16 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         var DirectiveBuilder = function DirectiveBuilder(directiveIndex) {
           this.directiveIndex = directiveIndex;
           this.propertyBindings = MapWrapper.create();
+          this.hostPropertyBindings = MapWrapper.create();
           this.eventBindings = ListWrapper.create();
           this.eventBuilder = new EventBuilder();
         };
         return ($traceurRuntime.createClass)(DirectiveBuilder, {
           bindProperty: function(name, expression) {
             MapWrapper.set(this.propertyBindings, name, expression);
+          },
+          bindHostProperty: function(name, expression) {
+            MapWrapper.set(this.hostPropertyBindings, name, expression);
           },
           bindEvent: function(name, expression) {
             var target = arguments[2] !== (void 0) ? arguments[2] : null;

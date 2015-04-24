@@ -1,9 +1,9 @@
-System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/forms"], function($__export) {
+System.register(["rtts_assert/rtts_assert", "angular2/angular2", "./validators", "./directives"], function($__export) {
   "use strict";
   var assert,
       Decorator,
-      ControlDirective,
       Validators,
+      ControlDirective,
       RequiredValidatorDirective;
   return {
     setters: [function($__m) {
@@ -11,8 +11,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/angular2", "angular2/forms
     }, function($__m) {
       Decorator = $__m.Decorator;
     }, function($__m) {
-      ControlDirective = $__m.ControlDirective;
       Validators = $__m.Validators;
+    }, function($__m) {
+      ControlDirective = $__m.ControlDirective;
     }],
     execute: function() {
       RequiredValidatorDirective = $__export("RequiredValidatorDirective", (function() {

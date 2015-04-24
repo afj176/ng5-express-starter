@@ -24,13 +24,13 @@ System.register(["rtts_assert/rtts_assert", "angular2/test_lib", "angular2/src/c
         var r = new PipeRegistry({});
         expect((function() {
           return r.get("unknown", "some object", null);
-        })).toThrowError("Cannot find a pipe for type 'unknown' object 'some object'");
+        })).toThrowError("Cannot find 'unknown' pipe supporting object 'some object'");
       }));
       it("should throw when no matching pipe", (function() {
         var r = new PipeRegistry({"type": []});
         expect((function() {
           return r.get("type", "some object", null);
-        })).toThrowError("Cannot find a pipe for type 'type' object 'some object'");
+        })).toThrowError("Cannot find 'type' pipe supporting object 'some object'");
       }));
     }));
   }

@@ -35,6 +35,7 @@ System.register(["./src/change_detection/parser/ast", "./src/change_detection/pa
     }, function($__m) {
       $__export("BindingRecord", $__m.BindingRecord);
     }, function($__m) {
+      $__export("DirectiveIndex", $__m.DirectiveIndex);
       $__export("DirectiveRecord", $__m.DirectiveRecord);
     }, function($__m) {
       $__export("DynamicChangeDetector", $__m.DynamicChangeDetector);

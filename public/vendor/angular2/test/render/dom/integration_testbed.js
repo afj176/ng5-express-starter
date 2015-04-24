@@ -110,7 +110,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           }
           var compiler = new Compiler(new DefaultStepFactory(parser, shadowDomStrategy), new FakeTemplateLoader(urlResolver, urlData));
           if (isBlank(viewCacheCapacity)) {
-            viewCacheCapacity = 1;
+            viewCacheCapacity = 0;
           }
           if (isBlank(urlData)) {
             urlData = MapWrapper.create();
@@ -118,7 +118,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           this.eventPlugin = new FakeEventManagerPlugin();
           var eventManager = new EventManager([this.eventPlugin], new FakeVmTurnZone());
           var viewFactory = new ViewFactory(viewCacheCapacity, eventManager, shadowDomStrategy);
-          var viewHydrator = new RenderViewHydrator(eventManager, viewFactory);
+          var viewHydrator = new RenderViewHydrator(eventManager, viewFactory, shadowDomStrategy);
           this.renderer = new DirectDomRenderer(compiler, viewFactory, viewHydrator, shadowDomStrategy);
         };
         return ($traceurRuntime.createClass)(IntegrationTestbed, {

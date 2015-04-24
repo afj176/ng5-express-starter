@@ -13,7 +13,7 @@ System.register(["rtts_assert/rtts_assert"], function($__export) {
           this._desc = ("Token(" + desc + ")");
         };
         return ($traceurRuntime.createClass)(OpaqueToken, {toString: function() {
-            return this._desc;
+            return assert.returnType((this._desc), assert.type.string);
           }}, {});
       }()));
       Object.defineProperty(OpaqueToken, "parameters", {get: function() {

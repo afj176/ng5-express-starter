@@ -96,6 +96,7 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
           it('should parse unary ! expressions', (function() {
             expectEval("!true").toEqual(!true);
             expectEval("!!true").toEqual(!!true);
+            expectEval("!!!true").toEqual(!!!true);
           }));
           it('should parse multiplicative expressions', (function() {
             expectEval("3*4/2%5").toEqual(3 * 4 / 2 % 5);
@@ -111,7 +112,22 @@ System.register(["angular2/test_lib", "angular2/src/facade/lang", "angular2/src/
           }));
           it('should parse equality expressions', (function() {
             expectEval("2==3").toEqual(2 == 3);
+            expectEval("2=='2'").toEqual(2 == '2');
+            expectEval("2=='3'").toEqual(2 == '3');
             expectEval("2!=3").toEqual(2 != 3);
+            expectEval("2!='3'").toEqual(2 != '3');
+            expectEval("2!='2'").toEqual(2 != '2');
+            expectEval("2!=!false").toEqual(2 != !false);
+          }));
+          it('should parse strict equality expressions', (function() {
+            expectEval("2===3").toEqual(2 === 3);
+            expectEval("2==='3'").toEqual(2 === '3');
+            expectEval("2==='2'").toEqual(2 === '2');
+            expectEval("2!==3").toEqual(2 !== 3);
+            expectEval("2!=='3'").toEqual(2 !== '3');
+            expectEval("2!=='2'").toEqual(2 !== '2');
+            expectEval("false===!true").toEqual(false === !true);
+            expectEval("false!==!!true").toEqual(false !== !!true);
           }));
           it('should parse logicalAND expressions', (function() {
             expectEval("true&&true").toEqual(true && true);

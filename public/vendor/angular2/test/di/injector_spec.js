@@ -2,6 +2,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
   "use strict";
   var assert,
       isBlank,
+      BaseException,
       describe,
       ddescribe,
       it,
@@ -155,6 +156,8 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
           throw "Must throw";
         } catch (e) {
           expect(e.message).toContain("Error during instantiation of Engine! (Car -> Engine)");
+          expect(e.cause instanceof BaseException).toBeTruthy();
+          expect(e.causeKey.token).toEqual(Engine);
         }
       });
       it('should instantiate an object after a failed attempt', function() {
@@ -246,6 +249,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       assert = $__m.assert;
     }, function($__m) {
       isBlank = $__m.isBlank;
+      BaseException = $__m.BaseException;
     }, function($__m) {
       describe = $__m.describe;
       ddescribe = $__m.ddescribe;
@@ -270,7 +274,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       }());
       BrokenEngine = (function() {
         var BrokenEngine = function BrokenEngine() {
-          throw "Broken Engine";
+          throw new BaseException("Broken Engine");
         };
         return ($traceurRuntime.createClass)(BrokenEngine, {}, {});
       }());

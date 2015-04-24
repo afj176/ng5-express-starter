@@ -99,6 +99,13 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               return: onReturn
             });
           },
+          dispose: function(subscription) {
+            assert.argumentTypes(subscription, assert.type.any);
+            subscription.dispose();
+          },
+          isObservable: function(obs) {
+            return assert.returnType((obs instanceof Observable), assert.type.boolean);
+          },
           callNext: function(emitter, value) {
             assert.argumentTypes(emitter, EventEmitter, value, assert.type.any);
             emitter.next(value);
@@ -115,6 +122,9 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
       }()));
       Object.defineProperty(ObservableWrapper.subscribe, "parameters", {get: function() {
           return [[EventEmitter], [], [], []];
+        }});
+      Object.defineProperty(ObservableWrapper.dispose, "parameters", {get: function() {
+          return [[assert.type.any]];
         }});
       Object.defineProperty(ObservableWrapper.callNext, "parameters", {get: function() {
           return [[EventEmitter], [assert.type.any]];

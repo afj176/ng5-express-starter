@@ -355,8 +355,12 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             while (true) {
               if (this.optionalOperator('==')) {
                 result = new Binary('==', result, this.parseRelational());
+              } else if (this.optionalOperator('===')) {
+                result = new Binary('===', result, this.parseRelational());
               } else if (this.optionalOperator('!=')) {
                 result = new Binary('!=', result, this.parseRelational());
+              } else if (this.optionalOperator('!==')) {
+                result = new Binary('!==', result, this.parseRelational());
               } else {
                 return result;
               }

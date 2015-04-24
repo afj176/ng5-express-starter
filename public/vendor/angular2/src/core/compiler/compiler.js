@@ -118,10 +118,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
         return ($traceurRuntime.createClass)(Compiler, {
           _bindDirective: function(directiveTypeOrBinding) {
             if (directiveTypeOrBinding instanceof DirectiveBinding) {
-              return directiveTypeOrBinding;
+              return assert.returnType((directiveTypeOrBinding), DirectiveBinding);
             }
             var meta = this._reader.read(directiveTypeOrBinding);
-            return DirectiveBinding.createFromType(meta.type, meta.annotation);
+            return assert.returnType((DirectiveBinding.createFromType(meta.type, meta.annotation)), DirectiveBinding);
           },
           compileInHost: function(componentTypeOrBinding) {
             var $__0 = this;
@@ -147,13 +147,20 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
               return pvPromise;
             }
             var template = this._templateResolver.resolve(component);
-            var directives = ListWrapper.map(this._flattenDirectives(template), (function(directive) {
-              return $__0._bindDirective(directive);
-            }));
-            var renderTemplate = this._buildRenderTemplate(component, template, directives);
-            pvPromise = this._renderer.compile(renderTemplate).then((function(renderPv) {
-              return $__0._compileNestedProtoViews(componentBinding, renderPv, directives, true);
-            }));
+            if (isPresent(template.renderer)) {
+              var directives = [];
+              pvPromise = this._renderer.createImperativeComponentProtoView(template.renderer).then((function(renderPv) {
+                return $__0._compileNestedProtoViews(componentBinding, renderPv, directives, true);
+              }));
+            } else {
+              var directives = ListWrapper.map(this._flattenDirectives(template), (function(directive) {
+                return $__0._bindDirective(directive);
+              }));
+              var renderTemplate = this._buildRenderTemplate(component, template, directives);
+              pvPromise = this._renderer.compile(renderTemplate).then((function(renderPv) {
+                return $__0._compileNestedProtoViews(componentBinding, renderPv, directives, true);
+              }));
+            }
             MapWrapper.set(this._compiling, component, pvPromise);
             return pvPromise;
           },
@@ -214,12 +221,12 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
             } else {
               templateAbsUrl = componentUrl;
             }
-            return new renderApi.ViewDefinition({
+            return assert.returnType((new renderApi.ViewDefinition({
               componentId: stringify(component),
               absUrl: templateAbsUrl,
               template: view.template,
               directives: ListWrapper.map(directives, Compiler.buildRenderDirective)
-            });
+            })), renderApi.ViewDefinition);
           },
           _flattenDirectives: function(template) {
             assert.argumentTypes(template, View);
@@ -252,26 +259,22 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
               renderType = renderApi.DirectiveMetadata.DECORATOR_TYPE;
               compileChildren = ann.compileChildren;
             }
-            var setters = [];
             var readAttributes = [];
             ListWrapper.forEach(directiveBinding.dependencies, (function(dep) {
-              if (isPresent(dep.propSetterName)) {
-                ListWrapper.push(setters, dep.propSetterName);
-              }
               if (isPresent(dep.attributeName)) {
                 ListWrapper.push(readAttributes, dep.attributeName);
               }
             }));
-            return new renderApi.DirectiveMetadata({
+            return assert.returnType((new renderApi.DirectiveMetadata({
               id: stringify(directiveBinding.key.token),
               type: renderType,
               selector: ann.selector,
               compileChildren: compileChildren,
               hostListeners: isPresent(ann.hostListeners) ? MapWrapper.createFromStringMap(ann.hostListeners) : null,
+              hostProperties: isPresent(ann.hostProperties) ? MapWrapper.createFromStringMap(ann.hostProperties) : null,
               properties: isPresent(ann.properties) ? MapWrapper.createFromStringMap(ann.properties) : null,
-              setters: setters,
               readAttributes: readAttributes
-            });
+            })), renderApi.DirectiveMetadata);
           }});
       }()));
       Object.defineProperty(Compiler, "annotations", {get: function() {

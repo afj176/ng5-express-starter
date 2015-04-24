@@ -80,7 +80,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       return element;
     }), [appComponentAnnotatedTypeToken, appDocumentToken]), bind(appComponentRefToken).toAsyncFactory((function(dynamicComponentLoader, injector, appElement, appComponentAnnotatedType, testability, registry) {
       registry.registerApplication(appElement, testability);
-      return dynamicComponentLoader.loadIntoNewLocation(appElement, appComponentAnnotatedType.type, null, injector);
+      return dynamicComponentLoader.loadIntoNewLocation(appComponentAnnotatedType.type, null, appElement, injector);
     }), [DynamicComponentLoader, Injector, appElementToken, appComponentAnnotatedTypeToken, Testability, TestabilityRegistry]), bind(appChangeDetectorToken).toFactory((function(ref) {
       return ref.hostView.changeDetector;
     }), [appComponentRefToken]), bind(appComponentType).toFactory((function(ref) {
@@ -92,11 +92,11 @@ System.register(["rtts_assert/rtts_assert", "angular2/di", "angular2/src/facade/
       return new EventManager(plugins, zone);
     }), [VmTurnZone]), bind(ShadowDomStrategy).toFactory((function(styleUrlResolver, doc) {
       return new EmulatedUnscopedShadowDomStrategy(styleUrlResolver, doc.head);
-    }), [StyleUrlResolver, appDocumentToken]), bind(Renderer).toClass(DirectDomRenderer), bind(rc.Compiler).toClass(rc.DefaultCompiler), bind(rvf.ViewFactory).toFactory((function(capacity, eventManager, shadowDomStrategy) {
+    }), [StyleUrlResolver, appDocumentToken]), DirectDomRenderer, bind(Renderer).toClass(DirectDomRenderer), bind(rc.Compiler).toClass(rc.DefaultCompiler), bind(rvf.ViewFactory).toFactory((function(capacity, eventManager, shadowDomStrategy) {
       return new rvf.ViewFactory(capacity, eventManager, shadowDomStrategy);
-    }), [rvf.VIEW_POOL_CAPACITY, EventManager, ShadowDomStrategy]), bind(rvf.VIEW_POOL_CAPACITY).toValue(10000), rvh.RenderViewHydrator, ProtoViewFactory, bind(ViewFactory).toFactory((function(capacity, renderer, appViewHydrator) {
-      return new ViewFactory(capacity, renderer, appViewHydrator);
-    }), [VIEW_POOL_CAPACITY, Renderer, AppViewHydrator]), bind(VIEW_POOL_CAPACITY).toValue(10000), AppViewHydrator, Compiler, CompilerCache, TemplateResolver, bind(PipeRegistry).toValue(defaultPipeRegistry), bind(ChangeDetection).toClass(DynamicChangeDetection), TemplateLoader, DirectiveMetadataReader, Parser, Lexer, ExceptionHandler, bind(XHR).toValue(new XHRImpl()), ComponentUrlMapper, UrlResolver, StyleUrlResolver, StyleInliner, DynamicComponentLoader, Testability]), assert.genericType(List, Binding));
+    }), [rvf.VIEW_POOL_CAPACITY, EventManager, ShadowDomStrategy]), bind(rvf.VIEW_POOL_CAPACITY).toValue(10000), rvh.RenderViewHydrator, ProtoViewFactory, bind(ViewFactory).toFactory((function(capacity, renderer) {
+      return new ViewFactory(capacity, renderer);
+    }), [VIEW_POOL_CAPACITY, Renderer]), bind(VIEW_POOL_CAPACITY).toValue(10000), AppViewHydrator, Compiler, CompilerCache, TemplateResolver, bind(PipeRegistry).toValue(defaultPipeRegistry), bind(ChangeDetection).toClass(DynamicChangeDetection), TemplateLoader, DirectiveMetadataReader, Parser, Lexer, ExceptionHandler, bind(XHR).toValue(new XHRImpl()), ComponentUrlMapper, UrlResolver, StyleUrlResolver, StyleInliner, DynamicComponentLoader, Testability]), assert.genericType(List, Binding));
   }
   function _createVmZone(givenReporter) {
     assert.argumentTypes(givenReporter, Function);

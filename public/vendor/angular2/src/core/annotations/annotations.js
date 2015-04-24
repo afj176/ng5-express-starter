@@ -41,12 +41,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               properties = $__1.properties,
               events = $__1.events,
               hostListeners = $__1.hostListeners,
+              hostProperties = $__1.hostProperties,
               lifecycle = $__1.lifecycle;
           $traceurRuntime.superConstructor(Directive).call(this);
           this.selector = selector;
           this.properties = properties;
           this.events = events;
           this.hostListeners = hostListeners;
+          this.hostProperties = hostProperties;
           this.lifecycle = lifecycle;
         };
         return ($traceurRuntime.createClass)(Directive, {hasLifecycleHook: function(hook) {
@@ -68,6 +70,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               properties = $__1.properties,
               events = $__1.events,
               hostListeners = $__1.hostListeners,
+              hostProperties = $__1.hostProperties,
               injectables = $__1.injectables,
               lifecycle = $__1.lifecycle,
               changeDetection = ($__2 = $__1.changeDetection) === void 0 ? DEFAULT : $__2;
@@ -76,6 +79,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             properties: properties,
             events: events,
             hostListeners: hostListeners,
+            hostProperties: hostProperties,
             lifecycle: lifecycle
           });
           this.changeDetection = changeDetection;
@@ -93,6 +97,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               properties = $__1.properties,
               events = $__1.events,
               hostListeners = $__1.hostListeners,
+              hostProperties = $__1.hostProperties,
               injectables = $__1.injectables,
               lifecycle = $__1.lifecycle;
           $traceurRuntime.superConstructor(DynamicComponent).call(this, {
@@ -100,6 +105,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             properties: properties,
             events: events,
             hostListeners: hostListeners,
+            hostProperties: hostProperties,
             lifecycle: lifecycle
           });
           this.injectables = injectables;
@@ -117,6 +123,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               properties = $__1.properties,
               events = $__1.events,
               hostListeners = $__1.hostListeners,
+              hostProperties = $__1.hostProperties,
               lifecycle = $__1.lifecycle,
               compileChildren = ($__2 = $__1.compileChildren) === void 0 ? true : $__2;
           $traceurRuntime.superConstructor(Decorator).call(this, {
@@ -124,6 +131,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             properties: properties,
             events: events,
             hostListeners: hostListeners,
+            hostProperties: hostProperties,
             lifecycle: lifecycle
           });
           this.compileChildren = compileChildren;
@@ -140,12 +148,14 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
               properties = $__1.properties,
               events = $__1.events,
               hostListeners = $__1.hostListeners,
+              hostProperties = $__1.hostProperties,
               lifecycle = $__1.lifecycle;
           $traceurRuntime.superConstructor(Viewport).call(this, {
             selector: selector,
             properties: properties,
             events: events,
             hostListeners: hostListeners,
+            hostProperties: hostProperties,
             lifecycle: lifecycle
           });
         };

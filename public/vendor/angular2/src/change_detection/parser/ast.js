@@ -69,7 +69,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             throw new BaseException("Not supported");
           },
           get isAssignable() {
-            return false;
+            return assert.returnType((false), assert.type.boolean);
           },
           assign: function(context, locals, value) {
             throw new BaseException("Not supported");
@@ -173,7 +173,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             }
           },
           get isAssignable() {
-            return true;
+            return assert.returnType((true), assert.type.boolean);
           },
           assign: function(context, locals, value) {
             var evaluatedContext = this.receiver.eval(context, locals);
@@ -205,7 +205,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             return obj[key];
           },
           get isAssignable() {
-            return true;
+            return assert.returnType((true), assert.type.boolean);
           },
           assign: function(context, locals, value) {
             var obj = this.obj.eval(context, locals);
@@ -346,6 +346,10 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
                 return left == right;
               case '!=':
                 return left != right;
+              case '===':
+                return left === right;
+              case '!==':
+                return left !== right;
               case '<':
                 return left < right;
               case '>':
@@ -470,7 +474,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
             return this.ast.eval(context, locals);
           },
           get isAssignable() {
-            return this.ast.isAssignable;
+            return assert.returnType((this.ast.isAssignable), assert.type.boolean);
           },
           assign: function(context, locals, value) {
             return this.ast.assign(context, locals, value);
@@ -597,7 +601,7 @@ System.register(["rtts_assert/rtts_assert", "angular2/src/facade/lang", "angular
         return ($traceurRuntime.createClass)(AstTransformer, {
           visitImplicitReceiver: function(ast) {
             assert.argumentTypes(ast, ImplicitReceiver);
-            return new ImplicitReceiver();
+            return ast;
           },
           visitInterpolation: function(ast) {
             assert.argumentTypes(ast, Interpolation);
