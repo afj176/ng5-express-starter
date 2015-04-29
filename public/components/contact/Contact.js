@@ -41,12 +41,12 @@ export class Contact {
         if (req.status == 200) {
           resolve(JSON.parse(req.response));
         } else {
-          reject(Error(JSON.parse(req.response)));
+          reject(Error(JSON.parse(req.response).message));
         }
       };
 
       req.onerror = function() {
-        reject(Error(JSON.parse(req.response)));
+        reject(Error(JSON.parse(req.response).message));
       };
 
       req.send(JSON.stringify({"message": message}));
