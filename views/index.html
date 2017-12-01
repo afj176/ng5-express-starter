@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-      <script src="/vendor/es6-shim.js"></script>
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <title><%= title %></title>
       <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
       <link href="css/style.css" rel="stylesheet">
+      <!-- source: https://embed.plnkr.co/4Ddi0C/ -->
+      <script src="https://unpkg.com/core-js/client/shim.min.js"></script>
+      <script src="https://unpkg.com/zone.js@0.8.16?main=browser"></script>
+      <script src="https://unpkg.com/reflect-metadata@0.1.10"></script>
+      <script src="https://unpkg.com/systemjs@0.20.18/dist/system.src.js"></script>
+      <script src="https://unpkg.com/web-animations-js@2.3.1"></script>
+      <script src="/config/systemjs.config.js"></script>
+      <script>
+          System.import('app').catch(function (err) { console.error(err); });
+      </script>
   </head>
   <body>
     <h1 class="site-name"><%= title %></h1>
-    <p class="lead">Angular 2 / Express Example App</p>
-    <main><content><img class="loading" src="images/loading.svg" width="94px"></content></main>
-    <script>
-      System.paths = {
-          'angular2/*':'/vendor/angular2/*.js',
-          'rx/*': '/vendor/rx.all.js',
-          'rtts_assert/*': '/vendor/rtts_assert/*.js',
-          'components/*': 'components/*.js',
-          'main': 'components/main/index.es6'
-      };  
-      System.import('main');
-    </script>
+    <p class="lead">Uses UNPKG & SystemJS to quickly boostrap an Angular App</p>
+    <stage><img class="loading" src="images/loading.svg" width="94px"></stage>
   </body>
 </html>

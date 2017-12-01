@@ -1,9 +1,10 @@
 html{position:relative;}
 html,body{min-height:100%;height:100%;}
 body{margin:0;padding:0;}
-main{display:block;}
-main:focus,.main:focus{outline:none;}
-main content,.main{display:block;max-width:500px;margin:10px auto;position:relative;}
-body > .site-name,body > .lead{display:block;max-width:500px;margin:0 auto;position:relative;}
+stage{display:block;}
+stage:focus,.stage:focus{outline:none;}
+stage,.stage{display:block;max-width:600px;margin:40px auto 10px;position:relative;}
+body > .site-name{display:block; max-width:500px; margin: 40px auto 10px; position:relative; text-align:center;}
+body > .lead{max-width:500px;margin:0 auto;display:block;position:relative; text-align: center;}
 .loading{display:block;width:94px;margin:50px auto;}
 .contact,.display{margin:20px 0;}
