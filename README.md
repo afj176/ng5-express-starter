@@ -13,7 +13,7 @@ npm install
 run the app:
 
 ```bash
-DEBUG=ng2-express-starter:* ./bin/www
+npm start
 ```
 
 preview app:
