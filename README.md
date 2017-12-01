@@ -21,8 +21,3 @@ preview app:
 ```
 http://localhost:3000/
 ```
-
-### Screenshot
-=================
-
-![screenshot](https://raw.githubusercontent.com/afj176/ng2-express-starter/master/screenshot.png "Screenshot")
